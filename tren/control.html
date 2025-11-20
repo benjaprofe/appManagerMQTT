@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Metro Inteligente</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .status.connected {
+            background: #4caf50;
+            color: white;
+        }
+        .status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border-left: 5px solid #2196F3;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-start {
+            background: #4caf50;
+        }
+        .btn-start:hover {
+            background: #45a049;
+        }
+        .btn-stop {
+            background: #f44336;
+        }
+        .btn-stop:hover {
+            background: #da190b;
+        }
+        .btn-emergency {
+            background: #d32f2f;
+            animation: pulse 2s infinite;
+        }
+        .btn-emergency:hover {
+            background: #b71c1c;
+        }
+        .btn-open {
+            background: #2196F3;
+        }
+        .btn-close {
+            background: #ff9800;
+        }
+        .btn-mode {
+            background: #9c27b0;
+        }
+        .btn-event {
+            background: #ff5722;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .slider-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+        }
+        .slider {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            margin: 15px 0;
+        }
+        .slider-value {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #2196F3;
+            margin-top: 10px;
+        }
+        .select-control {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚇 Panel de Control - Metro Inteligente</h1>
+        <div id="status" class="status disconnected">Desconectado</div>
+        
+        <!-- Control del Tren -->
+        <div class="section">
+            <h2>🚆 Control del Tren</h2>
+            <div class="controls-grid">
+                <button class="btn btn-start" onclick="iniciarRecorrido()">▶️ Iniciar Recorrido</button>
+                <button class="btn btn-stop" onclick="detenerTren()">⏹️ Detener Tren</button>
+                <button class="btn btn-open" onclick="abrirPuertas()">🚪 Abrir Puertas</button>
+                <button class="btn btn-close" onclick="cerrarPuertas()">🔒 Cerrar Puertas</button>
+                <button class="btn btn-emergency" onclick="frenoEmergencia()">🛑 Freno de Emergencia</button>
+            </div>
+            <div class="slider-container">
+                <label style="font-size: 18px; font-weight: bold;">Velocidad (km/h)</label>
+                <input type="range" min="0" max="80" value="0" class="slider" id="velocidadSlider" oninput="updateVelocidad(this.value)">
+                <div class="slider-value" id="velocidadValue">0 km/h</div>
+                <button class="btn btn-start" onclick="setVelocidad()" style="margin-top: 15px;">Establecer Velocidad</button>
+            </div>
+        </div>
+
+        <!-- Control de Estación -->
+        <div class="section">
+            <h2>🚉 Control de Estación</h2>
+            <div class="controls-grid">
+                <button class="btn btn-start" onclick="controlLuces('on')">💡 Encender Luces</button>
+                <button class="btn btn-stop" onclick="controlLuces('off')">💡 Apagar Luces</button>
+                <button class="btn btn-start" onclick="anunciarLlegada()">📢 Anunciar Llegada</button>
+                <button class="btn btn-event" onclick="evacuacion()">🚨 Iniciar Evacuación</button>
+                <button class="btn btn-event" onclick="alarmaIncendio()">🔥 Alarma de Incendio</button>
+                <button class="btn btn-event" onclick="altaCongestion()">⚠️ Alta Congestión</button>
+            </div>
+        </div>
+
+        <!-- Operaciones del Sistema -->
+        <div class="section">
+            <h2>⚙️ Operaciones del Sistema</h2>
+            <div class="controls-grid">
+                <select class="select-control" id="modoSistema">
+                    <option value="">Seleccionar modo...</option>
+                    <option value="hora_punta">🕐 Modo Hora Punta</option>
+                    <option value="baja_demanda">📉 Modo Baja Demanda</option>
+                    <option value="normal">⚖️ Modo Normal</option>
+                </select>
+                <button class="btn btn-mode" onclick="cambiarModo()">Cambiar Modo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const client = mqtt.connect("wss://17d7cec571094065932bc3866aa1ee98.s1.eu.hivemq.cloud:8884/mqtt", {
+            username: "bemtorres",
+            password: "Erensam18",
+            clean: true,
+            connectTimeout: 4000,
+            reconnectPeriod: 1000
+        });
+
+        client.on("connect", () => {
+            console.log("Panel de Control del Metro conectado!");
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+        });
+
+        // Control del Tren
+        function iniciarRecorrido() {
+            client.publish("metro/tren1/velocidad/set", "40");
+            console.log("Publicado: metro/tren1/velocidad/set = 40");
+        }
+
+        function detenerTren() {
+            client.publish("metro/tren1/velocidad/set", "0");
+            console.log("Publicado: metro/tren1/velocidad/set = 0");
+        }
+
+        function abrirPuertas() {
+            client.publish("metro/tren1/puertas/set", "open");
+            console.log("Publicado: metro/tren1/puertas/set = open");
+        }
+
+        function cerrarPuertas() {
+            client.publish("metro/tren1/puertas/set", "close");
+            console.log("Publicado: metro/tren1/puertas/set = close");
+        }
+
+        function frenoEmergencia() {
+            client.publish("metro/tren1/freno_emergencia/set", "on");
+            console.log("Publicado: metro/tren1/freno_emergencia/set = on");
+        }
+
+        function updateVelocidad(value) {
+            document.getElementById("velocidadValue").textContent = value + " km/h";
+        }
+
+        function setVelocidad() {
+            const velocidad = document.getElementById("velocidadSlider").value;
+            client.publish("metro/tren1/velocidad/set", velocidad);
+            console.log(`Publicado: metro/tren1/velocidad/set = ${velocidad}`);
+        }
+
+        // Control de Estación
+        function controlLuces(state) {
+            client.publish("metro/estacion1/luces/set", state);
+            console.log(`Publicado: metro/estacion1/luces/set = ${state}`);
+        }
+
+        function anunciarLlegada() {
+            client.publish("metro/estacion1/anuncio/set", "llegada");
+            console.log("Publicado: metro/estacion1/anuncio/set = llegada");
+        }
+
+        function evacuacion() {
+            client.publish("metro/estacion1/evacuacion/set", "start");
+            console.log("Publicado: metro/estacion1/evacuacion/set = start");
+        }
+
+        function alarmaIncendio() {
+            client.publish("metro/estacion1/alarma/set", "incendio");
+            console.log("Publicado: metro/estacion1/alarma/set = incendio");
+        }
+
+        function altaCongestion() {
+            client.publish("metro/estacion1/congestion/set", "alta");
+            console.log("Publicado: metro/estacion1/congestion/set = alta");
+        }
+
+        // Operaciones del Sistema
+        function cambiarModo() {
+            const modo = document.getElementById("modoSistema").value;
+            if (modo) {
+                client.publish("metro/sistema/modo/set", modo);
+                console.log(`Publicado: metro/sistema/modo/set = ${modo}`);
+                document.getElementById("modoSistema").value = "";
+            }
+        }
+    </script>
+</body>
+</html>
+

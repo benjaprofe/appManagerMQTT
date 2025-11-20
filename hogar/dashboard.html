@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Monitoreo Hogar Inteligente</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .status.connected {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4caf50;
+        }
+        .status.disconnected {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .sensor-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+        .sensor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .sensor-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sensor-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+        .sensor-value.on {
+            color: #4caf50;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+        .sensor-value.off {
+            color: #f44336;
+        }
+        .sensor-value.open {
+            color: #2196F3;
+        }
+        .sensor-value.close {
+            color: #ff9800;
+        }
+        .sensor-value.enabled {
+            color: #f44336;
+            animation: pulse 2s infinite;
+        }
+        .sensor-value.disabled {
+            color: #4caf50;
+        }
+        .sensor-value.temp {
+            color: #ff9800;
+        }
+        .sensor-value.humo {
+            color: #f44336;
+            animation: blink 1s infinite;
+        }
+        .sensor-value.movimiento {
+            color: #4caf50;
+        }
+        .sensor-value.gas {
+            color: #f44336;
+            animation: blink 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .logs-container {
+            grid-column: 1 / -1;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .logs-container h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .log-entry {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .log-entry.error {
+            border-left-color: #f44336;
+        }
+        .log-entry.warning {
+            border-left-color: #ff9800;
+        }
+        .timestamp {
+            color: #aaa;
+            font-size: 0.8em;
+        }
+        .room-section {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        .room-section h2 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .room-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .room-item h4 {
+            margin-bottom: 10px;
+        }
+        .subscription-status {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .subscription-status h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .subscription-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .subscription-item.success {
+            border-left: 4px solid #4caf50;
+        }
+        .subscription-item.error {
+            border-left: 4px solid #f44336;
+        }
+        .subscription-item.pending {
+            border-left: 4px solid #ff9800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Dashboard de Monitoreo - Hogar Inteligente</h1>
+        <div id="status" class="status disconnected">Desconectado</div>
+        
+        <div class="dashboard-grid">
+            <!-- Living - Luz -->
+            <div class="sensor-card">
+                <h3>💡 Living - Luz</h3>
+                <div id="living-luz" class="sensor-value off">OFF</div>
+            </div>
+
+            <!-- Cocina - Luz -->
+            <div class="sensor-card">
+                <h3>💡 Cocina - Luz</h3>
+                <div id="cocina-luz" class="sensor-value off">OFF</div>
+            </div>
+
+            <!-- Dormitorio - Luz -->
+            <div class="sensor-card">
+                <h3>💡 Dormitorio - Luz</h3>
+                <div id="dormitorio-luz" class="sensor-value off">OFF</div>
+            </div>
+
+            <!-- Puerta Principal -->
+            <div class="sensor-card">
+                <h3>🚪 Puerta Principal</h3>
+                <div id="puerta" class="sensor-value close">CERRADA</div>
+            </div>
+
+            <!-- Alarma -->
+            <div class="sensor-card">
+                <h3>🚨 Alarma</h3>
+                <div id="alarma" class="sensor-value disabled">DESACTIVADA</div>
+            </div>
+
+            <!-- Temperatura -->
+            <div class="sensor-card">
+                <h3>🌡️ Temperatura</h3>
+                <div id="temperatura" class="sensor-value temp">22°C</div>
+            </div>
+
+            <!-- Sensor de Humo -->
+            <div class="sensor-card">
+                <h3>🔥 Sensor de Humo</h3>
+                <div id="humo" class="sensor-value">Normal</div>
+            </div>
+
+            <!-- Sensor de Movimiento -->
+            <div class="sensor-card">
+                <h3>👤 Sensor de Movimiento</h3>
+                <div id="movimiento" class="sensor-value">Sin movimiento</div>
+            </div>
+
+            <!-- Sensor de Gas -->
+            <div class="sensor-card">
+                <h3>⛽ Sensor de Gas</h3>
+                <div id="gas" class="sensor-value">Normal</div>
+            </div>
+
+            <!-- TV Living -->
+            <div class="sensor-card">
+                <h3>📺 TV Living</h3>
+                <div id="tv" class="sensor-value off">OFF</div>
+            </div>
+
+            <!-- Ventana Living -->
+            <div class="sensor-card">
+                <h3>🪟 Ventana Living</h3>
+                <div id="ventana" class="sensor-value close">CERRADA</div>
+            </div>
+
+            <!-- Refrigerador -->
+            <div class="sensor-card">
+                <h3>❄️ Refrigerador</h3>
+                <div id="refrigerador" class="sensor-value temp">4°C</div>
+            </div>
+        </div>
+
+        <!-- Estado de Suscripciones -->
+        <div class="subscription-status">
+            <h3>📡 Estado de Suscripciones</h3>
+            <div id="subscriptions"></div>
+        </div>
+
+        <!-- Logs en tiempo real -->
+        <div class="logs-container">
+            <h3>📝 Logs de Eventos en Tiempo Real</h3>
+            <div id="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        const client = mqtt.connect("wss://5fa060c50718458c97c7e3bd622628cd.s1.eu.hivemq.cloud:8884/mqtt", {
+            username: "bemtorres",
+            password: "Erensam18",
+            clean: true,
+            connectTimeout: 4000,
+            reconnectPeriod: 1000
+        });
+
+        const estados = {
+            'living-luz': 'off',
+            'cocina-luz': 'off',
+            'dormitorio-luz': 'off',
+            'puerta': 'close',
+            'alarma': 'disabled',
+            'temperatura': '22',
+            'humo': 'normal',
+            'movimiento': 'no',
+            'gas': 'normal',
+            'tv': 'off',
+            'ventana': 'close',
+            'refrigerador': '4'
+        };
+
+        function actualizarEstadoSuscripcion(topic, estado, mensaje) {
+            const subscriptionsDiv = document.getElementById("subscriptions");
+            let item = document.getElementById(`sub-${topic.replace(/\//g, '-')}`);
+            
+            if (!item) {
+                item = document.createElement("div");
+                item.id = `sub-${topic.replace(/\//g, '-')}`;
+                item.className = "subscription-item pending";
+                subscriptionsDiv.appendChild(item);
+            }
+            
+            item.className = `subscription-item ${estado}`;
+            item.textContent = `${estado === 'success' ? '✅' : estado === 'error' ? '❌' : '⏳'} ${topic}`;
+        }
+
+        client.on("connect", () => {
+            console.log("✅ Dashboard conectado a MQTT!");
+            console.log("Estado del cliente:", client.connected);
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+            addLog("✅ Conectado a MQTT", "success");
+            
+            // Verificar que el cliente esté realmente conectado
+            if (!client.connected) {
+                console.error("❌ Cliente no está conectado!");
+                addLog("❌ Error: Cliente no conectado", "error");
+                return;
+            }
+            
+            // Suscribirse a todos los topics de estado Y comandos
+            const topics = [
+                "hogar/living/luz/state",
+                "hogar/cocina/luz/state",
+                "hogar/dormitorio/luz/state",
+                "hogar/puerta/principal/state",
+                "hogar/alarma/state",
+                "hogar/clima/temperatura",
+                "hogar/sensor/humo",
+                "hogar/sensor/movimiento",
+                "hogar/sensor/gas",
+                "hogar/living/tv/state",
+                "hogar/living/ventana/state",
+                "hogar/cocina/refrigerador/temperatura",
+                // También suscribirse a topics de comando para verlos
+                "hogar/living/luz/set",
+                "hogar/cocina/luz/set",
+                "hogar/dormitorio/luz/set",
+                "hogar/puerta/principal/set",
+                "hogar/alarma/set",
+                "hogar/clima/temperatura/set",
+                "hogar/living/tv/set"
+            ];
+            
+            console.log(`📡 Intentando suscribirse a ${topics.length} topics...`);
+            addLog(`📡 Suscribiéndose a ${topics.length} topics...`, "info");
+            
+            // Limpiar estado de suscripciones anterior
+            document.getElementById("subscriptions").innerHTML = "";
+            
+            // Suscribirse usando el método correcto de MQTT.js
+            topics.forEach((topic, index) => {
+                actualizarEstadoSuscripcion(topic, "pending", "");
+                
+                setTimeout(() => {
+                    if (!client.connected) {
+                        console.error(`❌ Cliente desconectado al intentar suscribirse a ${topic}`);
+                        actualizarEstadoSuscripcion(topic, "error", "Cliente desconectado");
+                        return;
+                    }
+                    
+                    client.subscribe(topic, { qos: 1 }, (err, granted) => {
+                        if (err) {
+                            console.error(`❌ Error suscribiéndose a ${topic}:`, err);
+                            addLog(`❌ Error: ${topic} - ${err.message}`, "error");
+                            actualizarEstadoSuscripcion(topic, "error", err.message);
+                        } else {
+                            console.log(`✅ Suscrito a: ${topic}`, granted);
+                            addLog(`✅ Suscrito: ${topic}`, "success");
+                            actualizarEstadoSuscripcion(topic, "success", "");
+                        }
+                    });
+                }, index * 100); // Espaciar suscripciones 100ms
+            });
+            
+            // También suscribirse usando wildcards para capturar TODOS los mensajes
+            setTimeout(() => {
+                const wildcards = [
+                    "hogar/#",  // Captura todos los topics bajo hogar/
+                    "#"         // Captura TODOS los topics (incluyendo "hello")
+                ];
+                
+                wildcards.forEach((wildcard, idx) => {
+                    setTimeout(() => {
+                        client.subscribe(wildcard, { qos: 1 }, (err) => {
+                            if (!err) {
+                                console.log(`✅ Suscrito a wildcard: ${wildcard}`);
+                                addLog(`✅ Wildcard: ${wildcard}`, "success");
+                            } else {
+                                console.error(`❌ Error wildcard ${wildcard}:`, err);
+                            }
+                        });
+                    }, idx * 100);
+                });
+            }, topics.length * 100 + 200);
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+            addLog("Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            console.log("Cliente desconectado");
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            addLog("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        client.on("reconnect", () => {
+            console.log("Reconectando...");
+            document.getElementById("status").textContent = "🔄 Reconectando...";
+            addLog("🔄 Intentando reconectar...", "warning");
+        });
+
+        let mensajesRecibidos = 0;
+        client.on("message", (topic, message) => {
+            const msg = message.toString();
+            mensajesRecibidos++;
+            console.log(`📨 Mensaje #${mensajesRecibidos} recibido: ${topic} = ${msg}`);
+            
+            updateSensor(topic, msg);
+            addLog(`${topic}: ${msg}`, "info");
+            
+            // Actualizar contador en el título si es necesario
+            if (mensajesRecibidos === 1) {
+                addLog("✅ Primer mensaje recibido - Sistema funcionando!", "success");
+            }
+        });
+
+        // Mapeo de topics a IDs de elementos y sus transformaciones
+        const topicMapping = {
+            "hogar/living/luz/state": {
+                elementId: "living-luz",
+                transform: (v) => ({ display: v.toUpperCase(), class: v === 'on' ? 'on' : 'off' })
+            },
+            "hogar/living/luz/set": {
+                elementId: "living-luz",
+                transform: (v) => ({ display: v.toUpperCase() + " (comando)", class: v === 'on' ? 'on' : 'off' })
+            },
+            "hogar/cocina/luz/state": {
+                elementId: "cocina-luz",
+                transform: (v) => ({ display: v.toUpperCase(), class: v === 'on' ? 'on' : 'off' })
+            },
+            "hogar/cocina/luz/set": {
+                elementId: "cocina-luz",
+                transform: (v) => ({ display: v.toUpperCase() + " (comando)", class: v === 'on' ? 'on' : 'off' })
+            },
+            "hogar/dormitorio/luz/state": {
+                elementId: "dormitorio-luz",
+                transform: (v) => ({ display: v.toUpperCase(), class: v === 'on' ? 'on' : 'off' })
+            },
+            "hogar/dormitorio/luz/set": {
+                elementId: "dormitorio-luz",
+                transform: (v) => ({ display: v.toUpperCase() + " (comando)", class: v === 'on' ? 'on' : 'off' })
+            },
+            "hogar/puerta/principal/state": {
+                elementId: "puerta",
+                transform: (v) => ({ 
+                    display: v === 'open' ? 'ABIERTA' : 'CERRADA', 
+                    class: v === 'open' ? 'open' : 'close' 
+                })
+            },
+            "hogar/puerta/principal/set": {
+                elementId: "puerta",
+                transform: (v) => ({ 
+                    display: (v === 'open' ? 'ABIERTA' : 'CERRADA') + " (comando)", 
+                    class: v === 'open' ? 'open' : 'close' 
+                })
+            },
+            "hogar/alarma/state": {
+                elementId: "alarma",
+                transform: (v) => ({ 
+                    display: v === 'enabled' || v === 'activada' ? 'ACTIVADA' : 'DESACTIVADA', 
+                    class: v === 'enabled' || v === 'activada' ? 'enabled' : 'disabled' 
+                })
+            },
+            "hogar/alarma/set": {
+                elementId: "alarma",
+                transform: (v) => ({ 
+                    display: (v === 'enabled' || v === 'activada' ? 'ACTIVADA' : 'DESACTIVADA') + " (comando)", 
+                    class: v === 'enabled' || v === 'activada' ? 'enabled' : 'disabled' 
+                })
+            },
+            "hogar/clima/temperatura": {
+                elementId: "temperatura",
+                transform: (v) => ({ display: v + '°C', class: 'temp' })
+            },
+            "hogar/clima/temperatura/set": {
+                elementId: "temperatura",
+                transform: (v) => ({ display: v + '°C (comando)', class: 'temp' })
+            },
+            "hogar/sensor/humo": {
+                elementId: "humo",
+                transform: (v) => ({ 
+                    display: v === 'alto' ? '⚠️ ALTO' : 'Normal', 
+                    class: v === 'alto' ? 'humo' : '' 
+                })
+            },
+            "hogar/sensor/movimiento": {
+                elementId: "movimiento",
+                transform: (v) => ({ 
+                    display: v === 'si' || v === 'yes' ? '✅ Movimiento detectado' : 'Sin movimiento', 
+                    class: v === 'si' || v === 'yes' ? 'movimiento' : '' 
+                })
+            },
+            "hogar/sensor/gas": {
+                elementId: "gas",
+                transform: (v) => ({ 
+                    display: v === 'alto' ? '⚠️ ALTO' : 'Normal', 
+                    class: v === 'alto' ? 'gas' : '' 
+                })
+            },
+            "hogar/living/tv/state": {
+                elementId: "tv",
+                transform: (v) => ({ display: v.toUpperCase(), class: v === 'on' ? 'on' : 'off' })
+            },
+            "hogar/living/tv/set": {
+                elementId: "tv",
+                transform: (v) => ({ display: v.toUpperCase() + " (comando)", class: v === 'on' ? 'on' : 'off' })
+            },
+            "hogar/living/ventana/state": {
+                elementId: "ventana",
+                transform: (v) => ({ 
+                    display: v === 'open' ? 'ABIERTA' : 'CERRADA', 
+                    class: v === 'open' ? 'open' : 'close' 
+                })
+            },
+            "hogar/cocina/refrigerador/temperatura": {
+                elementId: "refrigerador",
+                transform: (v) => ({ display: v + '°C', class: 'temp' })
+            }
+        };
+
+        function updateSensor(topic, value) {
+            // Ya no ignoramos topics de comando, los procesamos también
+            // Solo ignoramos eventos de simulación
+            if (topic.includes('/evento/')) {
+                return;
+            }
+
+            const mapping = topicMapping[topic];
+            
+            if (!mapping) {
+                // Si no hay mapeo, solo lo registramos en logs pero no actualizamos UI
+                console.log(`ℹ️ Topic no mapeado: ${topic} = ${value}`);
+                return;
+            }
+
+            const { elementId, transform } = mapping;
+            const { display, class: className } = transform(value);
+
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = display;
+                element.className = 'sensor-value ' + className;
+                console.log(`✅ Actualizado ${elementId} (${topic}): ${display}`);
+            } else {
+                console.error(`❌ Elemento no encontrado en DOM: ${elementId} para topic ${topic}`);
+                console.error(`   Buscando elemento con ID: "${elementId}"`);
+            }
+        }
+
+        function addLog(message, type = 'info') {
+            const logsContainer = document.getElementById("logs");
+            const logEntry = document.createElement("div");
+            logEntry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+            
+            // Limitar a 50 logs
+            while (logsContainer.children.length > 50) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+    </script>
+</body>
+</html>
+
+ <!-- client.subscribe("test/topic"); -->
+    <!-- client.publish("test/topic", "Hola desde el frontend!"); -->

@@ -1,0 +1,21 @@
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+  const client = mqtt.connect("wss://17d7cec571094065932bc3866aa1ee98.s1.eu.hivemq.cloud:8884/mqtt", {
+    username: "bemtorres",
+    password: "Erensam18",
+    clean: true,
+    connectTimeout: 4000,
+    reconnectPeriod: 1000
+  });
+
+  client.on("connect", () => {
+    console.log("Conectado desde el navegador!");
+
+    client.subscribe("test/topic");
+    client.publish("test/topic", "Hola desde el frontend!");
+  });
+
+  client.on("message", (topic, msg) => {
+    console.log("Mensaje:", topic, msg.toString());
+  });
+</script>
