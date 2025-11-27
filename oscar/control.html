@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - SmartPost</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .status.connected {
+            background: #4caf50;
+            color: white;
+        }
+        .status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+        .notification.show {
+            display: block;
+        }
+        .notification.error {
+            background: #f44336;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .control-section {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px solid #e0e0e0;
+        }
+        .control-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn-detect {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+        }
+        .btn-detect:hover {
+            background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
+        }
+        .btn-empty {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+            color: white;
+        }
+        .btn-empty:hover {
+            background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+        }
+        .btn-full {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+        }
+        .btn-full:hover {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        }
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .info-box h3 {
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+        }
+        .logs-container {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .logs-container h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .log-entry {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 3px solid #4caf50;
+        }
+        .log-entry.error {
+            border-left-color: #f44336;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .back-link:hover {
+            background: #e0e0e0;
+            transform: translateX(-5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Volver al inicio</a>
+        <h1>📬 Panel de Control - SmartPost</h1>
+        <div id="status" class="status disconnected">Desconectado</div>
+        <div id="notification" class="notification"></div>
+
+        <div class="info-box">
+            <h3>ℹ️ Información</h3>
+            <p>Este panel permite simular la detección de correo en el buzón inteligente. Usa los botones para cambiar el estado del buzón y simular eventos de detección.</p>
+        </div>
+
+        <div class="control-section">
+            <h2>🎯 Simulación de Detección</h2>
+            <p style="color: #666; margin-bottom: 15px;">Simula la detección de correo en el buzón</p>
+            <div class="control-grid">
+                <button class="btn btn-detect" onclick="simulateDetection()">
+                    📬 Detectar Correo
+                </button>
+                <button class="btn btn-empty" onclick="setState('empty')">
+                    ✅ Marcar como Vacío
+                </button>
+                <button class="btn btn-full" onclick="setState('full')">
+                    📮 Marcar como Lleno
+                </button>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h2>📊 Estado del Buzón</h2>
+            <p style="color: #666; margin-bottom: 15px;">Control manual del estado del buzón</p>
+            <div class="control-grid">
+                <button class="btn btn-empty" onclick="publishState('empty')">
+                    Vacío
+                </button>
+                <button class="btn btn-full" onclick="publishState('full')">
+                    Con Correo
+                </button>
+            </div>
+        </div>
+
+        <div class="logs-container">
+            <h3>📋 Log de Actividades</h3>
+            <div id="logs"></div>
+        </div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_oscar');
+        const statusEl = document.getElementById('status');
+        const notification = document.getElementById('notification');
+        const logsEl = document.getElementById('logs');
+
+        // Función para mostrar notificación
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.className = `notification ${isError ? 'error' : ''} show`;
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Función para agregar logs
+        function addLog(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString('es-ES');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logsEl.insertBefore(logEntry, logsEl.firstChild);
+            
+            // Limitar a 50 logs
+            while (logsEl.children.length > 50) {
+                logsEl.removeChild(logsEl.lastChild);
+            }
+        }
+
+        // Función para publicar mensaje MQTT
+        function publishMessage(topic, message, description) {
+            try {
+                client.publish(topic, message, { qos: 1 }, (err) => {
+                    if (err) {
+                        addLog(`❌ Error al publicar en ${topic}: ${err.message}`, 'error');
+                        showNotification(`Error: ${err.message}`, true);
+                    } else {
+                        addLog(`✅ ${description}`, 'info');
+                        showNotification(description);
+                    }
+                });
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+                showNotification(`Error: ${error.message}`, true);
+            }
+        }
+
+        // Simular detección de correo
+        function simulateDetection() {
+            const timestamp = new Date().toISOString();
+            
+            // Publicar detección
+            publishMessage(
+                'smartpost/buzon/detection',
+                'detected',
+                'Detección de correo simulada'
+            );
+            
+            // Publicar estado como lleno
+            publishMessage(
+                'smartpost/buzon/state',
+                'full',
+                'Estado actualizado: CON CORREO'
+            );
+            
+            // Publicar timestamp
+            publishMessage(
+                'smartpost/buzon/timestamp',
+                timestamp,
+                'Timestamp actualizado'
+            );
+        }
+
+        // Establecer estado manualmente
+        function setState(state) {
+            const stateText = state === 'empty' ? 'VACÍO' : 'CON CORREO';
+            publishMessage(
+                'smartpost/buzon/state',
+                state,
+                `Estado establecido: ${stateText}`
+            );
+            
+            if (state === 'full') {
+                const timestamp = new Date().toISOString();
+                publishMessage(
+                    'smartpost/buzon/timestamp',
+                    timestamp,
+                    'Timestamp actualizado'
+                );
+            }
+        }
+
+        // Publicar estado directamente
+        function publishState(state) {
+            const stateText = state === 'empty' ? 'VACÍO' : 'CON CORREO';
+            publishMessage(
+                'smartpost/buzon/state',
+                state,
+                `Estado publicado: ${stateText}`
+            );
+        }
+
+        // Eventos del cliente MQTT
+        client.on('connect', () => {
+            statusEl.textContent = '✅ Conectado';
+            statusEl.className = 'status connected';
+            addLog('✅ Conectado al broker MQTT', 'info');
+            showNotification('Conectado al broker MQTT');
+        });
+
+        client.on('error', (error) => {
+            statusEl.textContent = '❌ Error de conexión';
+            statusEl.className = 'status disconnected';
+            addLog(`❌ Error MQTT: ${error.message}`, 'error');
+            showNotification(`Error: ${error.message}`, true);
+        });
+
+        client.on('offline', () => {
+            statusEl.textContent = '⚠️ Desconectado';
+            statusEl.className = 'status disconnected';
+            addLog('⚠️ Cliente desconectado', 'error');
+        });
+
+        client.on('reconnect', () => {
+            statusEl.textContent = '🔄 Reconectando...';
+            statusEl.className = 'status disconnected';
+            addLog('🔄 Intentando reconectar...', 'info');
+        });
+    </script>
+</body>
+</html>
+
