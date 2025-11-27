@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Sistema IONU</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f4c75 0%, #3282b8 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .status.connected {
+            background: #4caf50;
+            color: white;
+        }
+        .status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border-left: 5px solid #3282b8;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-primary {
+            background: #3282b8;
+        }
+        .btn-primary:hover {
+            background: #0f4c75;
+        }
+        .btn-success {
+            background: #4caf50;
+        }
+        .btn-success:hover {
+            background: #45a049;
+        }
+        .btn-danger {
+            background: #f44336;
+        }
+        .btn-danger:hover {
+            background: #da190b;
+        }
+        .btn-warning {
+            background: #ff9800;
+        }
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+        .btn-info {
+            background: #2196F3;
+        }
+        .btn-info:hover {
+            background: #1976D2;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .slider-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+        }
+        .slider {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            margin: 15px 0;
+        }
+        .slider-value {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #3282b8;
+            margin-top: 10px;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+        .notification.show {
+            display: block;
+        }
+        .notification.error {
+            background: #f44336;
+        }
+        .notification.warning {
+            background: #ff9800;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Panel de Control IONU - Monitoreo Institucional</h1>
+        <div id="status" class="status disconnected">Desconectado</div>
+        <div id="notification" class="notification"></div>
+        
+        <!-- Control de Seguridad -->
+        <div class="section">
+            <h2>🔒 Control de Seguridad</h2>
+            <div class="controls-grid">
+                <button class="btn btn-success" onclick="controlCamera('camera1', 'on')">📹 Activar Cámara 1</button>
+                <button class="btn btn-danger" onclick="controlCamera('camera1', 'off')">📹 Desactivar Cámara 1</button>
+                <button class="btn btn-success" onclick="controlCamera('camera2', 'on')">📹 Activar Cámara 2</button>
+                <button class="btn btn-danger" onclick="controlCamera('camera2', 'off')">📹 Desactivar Cámara 2</button>
+                <button class="btn btn-success" onclick="controlAlarm('enabled')">🚨 Activar Alarma</button>
+                <button class="btn btn-danger" onclick="controlAlarm('disabled')">🚨 Desactivar Alarma</button>
+            </div>
+        </div>
+
+        <!-- Control de Accesos -->
+        <div class="section">
+            <h2>🔑 Control de Accesos</h2>
+            <div class="controls-grid">
+                <div class="form-group">
+                    <label for="accessUser">Usuario/ID</label>
+                    <input type="text" id="accessUser" placeholder="Ej: EMP-001">
+                </div>
+                <div class="form-group">
+                    <label for="accessType">Tipo de Acceso</label>
+                    <select id="accessType">
+                        <option value="entrada">Entrada</option>
+                        <option value="salida">Salida</option>
+                        <option value="emergencia">Emergencia</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="registerAccess()">🔑 Registrar Acceso</button>
+        </div>
+
+        <!-- Control Ambiental -->
+        <div class="section">
+            <h2>🌡️ Control Ambiental</h2>
+            <div class="controls-grid">
+                <button class="btn btn-success" onclick="controlIrrigation('on')">💧 Activar Riego</button>
+                <button class="btn btn-danger" onclick="controlIrrigation('off')">💧 Desactivar Riego</button>
+            </div>
+            <div class="slider-container">
+                <label style="font-size: 18px; font-weight: bold;">Temperatura Objetivo (°C)</label>
+                <input type="range" min="16" max="30" value="22" class="slider" id="tempSlider" oninput="updateTemp(this.value)">
+                <div class="slider-value" id="tempValue">22°C</div>
+                <button class="btn btn-primary" onclick="setTemperature()" style="margin-top: 15px;">🌡️ Establecer Temperatura</button>
+            </div>
+        </div>
+
+        <!-- Control de Mascotas -->
+        <div class="section">
+            <h2>🐾 Control de Mascotas</h2>
+            <div class="controls-grid">
+                <button class="btn btn-success" onclick="dispenseFood()">🍽️ Dispensar Comida</button>
+                <button class="btn btn-info" onclick="dispenseWater()">💧 Dispensar Agua</button>
+                <button class="btn btn-success" onclick="controlPetLight('on')">💡 Encender Luz</button>
+                <button class="btn btn-danger" onclick="controlPetLight('off')">💡 Apagar Luz</button>
+                <button class="btn btn-success" onclick="controlPetFans('on')">🌀 Encender Ventiladores</button>
+                <button class="btn btn-danger" onclick="controlPetFans('off')">🌀 Apagar Ventiladores</button>
+            </div>
+            <div class="slider-container">
+                <label style="font-size: 18px; font-weight: bold;">Intensidad de Luz (%)</label>
+                <input type="range" min="0" max="100" value="80" class="slider" id="lightSlider" oninput="updateLight(this.value)">
+                <div class="slider-value" id="lightValue">80%</div>
+                <button class="btn btn-primary" onclick="setLightIntensity()" style="margin-top: 15px;">💡 Establecer Intensidad</button>
+            </div>
+            <div class="slider-container">
+                <label style="font-size: 18px; font-weight: bold;">Velocidad Ventiladores (%)</label>
+                <input type="range" min="0" max="100" value="50" class="slider" id="fanSlider" oninput="updateFan(this.value)">
+                <div class="slider-value" id="fanValue">50%</div>
+                <button class="btn btn-primary" onclick="setFanSpeed()" style="margin-top: 15px;">🌀 Establecer Velocidad</button>
+            </div>
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="petMessage">Enviar Mensaje al Sector de Mascotas</label>
+                <input type="text" id="petMessage" placeholder="Ej: Recordatorio: Comida a las 2 PM">
+                <button class="btn btn-info" onclick="sendPetMessage()" style="margin-top: 10px;">💬 Enviar Mensaje</button>
+            </div>
+        </div>
+
+        <!-- Monitoreo de Riesgo de Plantas -->
+        <div class="section">
+            <h2>🌱 Monitoreo de Plantas</h2>
+            <div class="controls-grid">
+                <button class="btn btn-info" onclick="checkPlantsRisk()">🔍 Verificar Riesgo de Plantas</button>
+                <button class="btn btn-success" onclick="autoIrrigation()">💧 Riego Automático</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_ionu');
+
+        client.on("connect", () => {
+            console.log("Panel de Control IONU conectado!");
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+            mostrarNotificacion("✅ Conectado a MQTT", "success");
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("❌ Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("⚠️ Desconectado de MQTT", "error");
+        });
+
+        client.on("reconnect", () => {
+            document.getElementById("status").textContent = "🔄 Reconectando...";
+            mostrarNotificacion("🔄 Intentando reconectar...", "warning");
+        });
+
+        function mostrarNotificacion(mensaje, tipo = "success") {
+            const notification = document.getElementById("notification");
+            notification.textContent = mensaje;
+            notification.className = `notification show ${tipo}`;
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        function publicarConConfirmacion(topic, value, descripcion) {
+            if (!client.connected) {
+                mostrarNotificacion("❌ No conectado a MQTT", "error");
+                return;
+            }
+            
+            const message = typeof value === 'string' ? value : JSON.stringify(value);
+            
+            client.publish(topic, message, { qos: 1 }, (err) => {
+                if (err) {
+                    console.error(`Error publicando ${topic}:`, err);
+                    mostrarNotificacion(`❌ Error: ${descripcion}`, "error");
+                } else {
+                    console.log(`✅ Publicado: ${topic} = ${message}`);
+                    mostrarNotificacion(`✅ ${descripcion}`, "success");
+                }
+            });
+        }
+
+        // Control de Seguridad
+        function controlCamera(cameraId, state) {
+            const accion = state === 'on' ? `Activando ${cameraId}` : `Desactivando ${cameraId}`;
+            publicarConConfirmacion(`ionu/seguridad/${cameraId}/set`, state, accion);
+        }
+
+        function controlAlarm(state) {
+            const accion = state === 'enabled' ? 'Activando alarma' : 'Desactivando alarma';
+            publicarConConfirmacion("ionu/seguridad/alarma/set", state, accion);
+        }
+
+        // Control de Accesos
+        function registerAccess() {
+            const user = document.getElementById("accessUser").value;
+            const type = document.getElementById("accessType").value;
+
+            if (!user) {
+                mostrarNotificacion("⚠️ Ingresa un usuario/ID", "warning");
+                return;
+            }
+
+            const accessData = {
+                user: user,
+                type: type,
+                timestamp: new Date().toISOString()
+            };
+
+            publicarConConfirmacion("ionu/seguridad/acceso/set", accessData, `Acceso ${type} registrado para ${user}`);
+            document.getElementById("accessUser").value = "";
+        }
+
+        // Control Ambiental
+        function controlIrrigation(state) {
+            const accion = state === 'on' ? 'Activando riego' : 'Desactivando riego';
+            publicarConConfirmacion("ionu/ambiente/riego/set", state, accion);
+        }
+
+        function updateTemp(value) {
+            document.getElementById("tempValue").textContent = value + "°C";
+        }
+
+        function setTemperature() {
+            const temp = document.getElementById("tempSlider").value;
+            publicarConConfirmacion("ionu/ambiente/temperatura/set", temp, `Temperatura objetivo establecida a ${temp}°C`);
+        }
+
+        // Control de Mascotas
+        function dispenseFood() {
+            publicarConConfirmacion("ionu/mascotas/comida/set", "dispense", "Dispensando comida para mascotas");
+        }
+
+        function dispenseWater() {
+            publicarConConfirmacion("ionu/mascotas/agua/set", "dispense", "Dispensando agua para mascotas");
+        }
+
+        function controlPetLight(state) {
+            const intensity = parseInt(document.getElementById("lightSlider").value);
+            const data = {
+                state: state,
+                intensity: state === 'on' ? intensity : 0
+            };
+            const accion = state === 'on' ? 'Encendiendo luz' : 'Apagando luz';
+            publicarConConfirmacion("ionu/mascotas/luz/set", data, accion);
+        }
+
+        function controlPetFans(state) {
+            const speed = parseInt(document.getElementById("fanSlider").value);
+            const data = {
+                state: state,
+                speed: state === 'on' ? speed : 0
+            };
+            const accion = state === 'on' ? 'Encendiendo ventiladores' : 'Apagando ventiladores';
+            publicarConConfirmacion("ionu/mascotas/ventiladores/set", data, accion);
+        }
+
+        function updateLight(value) {
+            document.getElementById("lightValue").textContent = value + "%";
+        }
+
+        function setLightIntensity() {
+            const intensity = document.getElementById("lightSlider").value;
+            const data = {
+                state: 'on',
+                intensity: parseInt(intensity)
+            };
+            publicarConConfirmacion("ionu/mascotas/luz/set", data, `Intensidad de luz establecida a ${intensity}%`);
+        }
+
+        function updateFan(value) {
+            document.getElementById("fanValue").textContent = value + "%";
+        }
+
+        function setFanSpeed() {
+            const speed = document.getElementById("fanSlider").value;
+            const data = {
+                state: 'on',
+                speed: parseInt(speed)
+            };
+            publicarConConfirmacion("ionu/mascotas/ventiladores/set", data, `Velocidad de ventiladores establecida a ${speed}%`);
+        }
+
+        function sendPetMessage() {
+            const message = document.getElementById("petMessage").value;
+            if (!message) {
+                mostrarNotificacion("⚠️ Ingresa un mensaje", "warning");
+                return;
+            }
+            publicarConConfirmacion("ionu/mascotas/mensajes/set", message, "Mensaje enviado al sector de mascotas");
+            document.getElementById("petMessage").value = "";
+        }
+
+        // Monitoreo de Plantas
+        function checkPlantsRisk() {
+            publicarConConfirmacion("ionu/ambiente/plantas/check", "check", "Verificando riesgo de plantas");
+        }
+
+        function autoIrrigation() {
+            publicarConConfirmacion("ionu/ambiente/riego/auto", "auto", "Activando riego automático");
+        }
+    </script>
+</body>
+</html>
+
