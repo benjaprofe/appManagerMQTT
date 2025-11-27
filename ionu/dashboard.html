@@ -519,54 +519,63 @@
 
         client.on("message", (topic, message) => {
             const msg = message.toString();
-            console.log(`Mensaje recibido: ${topic} = ${msg}`);
+            console.log(`📨 Mensaje recibido: ${topic} = ${msg}`);
             
-            updateSensor(topic, msg);
-            addLog(`${topic}: ${msg}`, "info");
+            try {
+                updateSensor(topic, msg);
+                addLog(`${topic}: ${msg}`, "info");
+            } catch (error) {
+                console.error(`❌ Error procesando mensaje de ${topic}:`, error);
+                addLog(`❌ Error procesando ${topic}: ${error.message}`, "error");
+            }
         });
 
         function updateSensor(topic, value) {
+            console.log(`🔄 Actualizando sensor: ${topic} con valor: ${value}`);
+            
             // Seguridad
-            if (topic === "ionu/seguridad/camara1/state") {
+            if (topic === "ionu/seguridad/camara1/state" || topic.includes("camara1")) {
                 updateCamera('camera1', value);
-            } else if (topic === "ionu/seguridad/camara2/state") {
+            } else if (topic === "ionu/seguridad/camara2/state" || topic.includes("camara2")) {
                 updateCamera('camera2', value);
-            } else if (topic === "ionu/seguridad/movimiento") {
+            } else if (topic.includes("movimiento")) {
                 updateMovement(value);
-            } else if (topic === "ionu/seguridad/puerta1/state") {
+            } else if (topic === "ionu/seguridad/puerta1/state" || topic.includes("puerta1")) {
                 updateDoor('door1', value);
-            } else if (topic === "ionu/seguridad/puerta2/state") {
+            } else if (topic === "ionu/seguridad/puerta2/state" || topic.includes("puerta2")) {
                 updateDoor('door2', value);
-            } else if (topic === "ionu/seguridad/alarma/state") {
+            } else if (topic.includes("alarma")) {
                 updateAlarm(value);
-            } else if (topic === "ionu/seguridad/acceso") {
+            } else if (topic.includes("acceso")) {
                 updateAccess(value);
             }
             // Ambiente
-            else if (topic === "ionu/ambiente/temperatura") {
+            else if (topic.includes("temperatura") && !topic.includes("mascotas")) {
                 updateTemperature(value);
-            } else if (topic === "ionu/ambiente/humedad") {
+            } else if (topic.includes("humedad")) {
                 updateHumidity(value);
-            } else if (topic === "ionu/ambiente/riego/state") {
+            } else if (topic.includes("riego")) {
                 updateIrrigation(value);
-            } else if (topic === "ionu/ambiente/plantas/riesgo") {
+            } else if (topic.includes("plantas") || topic.includes("riesgo")) {
                 updatePlantsRisk(value);
             }
             // Mascotas
-            else if (topic === "ionu/mascotas/temperatura") {
+            else if (topic.includes("mascotas/temperatura")) {
                 updatePetTemperature(value);
-            } else if (topic === "ionu/mascotas/ventiladores/state") {
+            } else if (topic.includes("ventiladores")) {
                 updatePetFans(value);
-            } else if (topic === "ionu/mascotas/estado") {
+            } else if (topic.includes("mascotas/estado")) {
                 updatePetStatus(value);
-            } else if (topic === "ionu/mascotas/comida/state") {
+            } else if (topic.includes("comida")) {
                 updatePetFood(value);
-            } else if (topic === "ionu/mascotas/agua/state") {
+            } else if (topic.includes("agua") && topic.includes("mascotas")) {
                 updatePetWater(value);
-            } else if (topic === "ionu/mascotas/luz/state") {
+            } else if (topic.includes("luz") && topic.includes("mascotas")) {
                 updatePetLight(value);
-            } else if (topic === "ionu/mascotas/mensajes") {
+            } else if (topic.includes("mensajes")) {
                 updatePetMessage(value);
+            } else {
+                console.log(`ℹ️ Topic no mapeado: ${topic} = ${value}`);
             }
         }
 
@@ -574,16 +583,26 @@
             const statusEl = document.getElementById(`${cameraId}-status`);
             const previewEl = document.getElementById(`${cameraId}-preview`);
             
-            if (state === 'on' || state === 'active') {
+            if (!statusEl || !previewEl) {
+                console.error(`❌ Elementos no encontrados para ${cameraId}`);
+                return;
+            }
+            
+            const stateLower = String(state).toLowerCase().trim();
+            console.log(`📹 Actualizando ${cameraId}: ${stateLower}`);
+            
+            if (stateLower === 'on' || stateLower === 'active' || stateLower === '1' || stateLower === 'true') {
                 statusEl.textContent = 'ON';
                 statusEl.className = 'sensor-status status-on';
                 previewEl.textContent = '📹 Cámara activa - Transmitiendo';
                 previewEl.classList.add('active');
+                console.log(`✅ ${cameraId} activada`);
             } else {
                 statusEl.textContent = 'OFF';
                 statusEl.className = 'sensor-status status-off';
                 previewEl.textContent = 'Cámara desactivada';
                 previewEl.classList.remove('active');
+                console.log(`✅ ${cameraId} desactivada`);
             }
         }
 
@@ -592,29 +611,49 @@
             const valueEl = document.getElementById('movement-value');
             const card = document.getElementById('movement');
             
-            if (value === 'detected' || value === 'si' || value === 'yes') {
+            if (!statusEl || !valueEl || !card) {
+                console.error('❌ Elementos no encontrados para movimiento');
+                return;
+            }
+            
+            const valueLower = String(value).toLowerCase().trim();
+            console.log(`👤 Actualizando movimiento: ${valueLower}`);
+            
+            if (valueLower === 'detected' || valueLower === 'si' || valueLower === 'yes' || valueLower === '1' || valueLower === 'true' || valueLower === 'movimiento') {
                 statusEl.textContent = 'Movimiento Detectado';
                 statusEl.className = 'sensor-status status-alert';
                 valueEl.textContent = '⚠️ Movimiento detectado';
                 card.classList.add('danger');
                 addLog('🚨 Movimiento detectado en el área', 'warning');
+                console.log('✅ Movimiento detectado');
             } else {
                 statusEl.textContent = 'Normal';
                 statusEl.className = 'sensor-status status-normal';
                 valueEl.textContent = 'Sin movimiento';
                 card.classList.remove('danger');
+                console.log('✅ Sin movimiento');
             }
         }
 
         function updateDoor(doorId, state) {
             const statusEl = document.getElementById(`${doorId}-status`);
             
-            if (state === 'open' || state === 'abierta') {
+            if (!statusEl) {
+                console.error(`❌ Elemento no encontrado para ${doorId}`);
+                return;
+            }
+            
+            const stateLower = String(state).toLowerCase().trim();
+            console.log(`🚪 Actualizando ${doorId}: ${stateLower}`);
+            
+            if (stateLower === 'open' || stateLower === 'abierta' || stateLower === '1' || stateLower === 'true') {
                 statusEl.textContent = 'Abierta';
                 statusEl.className = 'sensor-status status-open';
+                console.log(`✅ ${doorId} abierta`);
             } else {
                 statusEl.textContent = 'Cerrada';
                 statusEl.className = 'sensor-status status-close';
+                console.log(`✅ ${doorId} cerrada`);
             }
         }
 
@@ -622,55 +661,113 @@
             const statusEl = document.getElementById('alarm-status');
             const card = document.getElementById('alarm');
             
-            if (state === 'enabled' || state === 'activada') {
+            if (!statusEl || !card) {
+                console.error('❌ Elementos no encontrados para alarma');
+                return;
+            }
+            
+            const stateLower = String(state).toLowerCase().trim();
+            console.log(`🚨 Actualizando alarma: ${stateLower}`);
+            
+            if (stateLower === 'enabled' || stateLower === 'activada' || stateLower === 'on' || stateLower === '1' || stateLower === 'true') {
                 statusEl.textContent = 'Activada';
                 statusEl.className = 'sensor-status status-active';
                 card.classList.add('danger');
+                console.log('✅ Alarma activada');
             } else {
                 statusEl.textContent = 'Desactivada';
                 statusEl.className = 'sensor-status status-inactive';
                 card.classList.remove('danger');
+                console.log('✅ Alarma desactivada');
             }
         }
 
         function updateAccess(value) {
             const valueEl = document.getElementById('access-value');
-            estados.lastAccess = new Date().toLocaleTimeString();
-            valueEl.textContent = `Último acceso: ${estados.lastAccess}`;
+            
+            if (!valueEl) {
+                console.error('❌ Elemento no encontrado para acceso');
+                return;
+            }
+            
+            try {
+                let accessData = value;
+                if (typeof value === 'string' && value.startsWith('{')) {
+                    accessData = JSON.parse(value);
+                }
+                
+                const timestamp = accessData.timestamp ? new Date(accessData.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+                const user = accessData.user || 'Usuario';
+                const type = accessData.type || 'acceso';
+                
+                estados.lastAccess = timestamp;
+                valueEl.textContent = `Último acceso: ${user} (${type}) - ${timestamp}`;
+                console.log(`✅ Acceso registrado: ${user} - ${type}`);
+            } catch (error) {
+                estados.lastAccess = new Date().toLocaleTimeString();
+                valueEl.textContent = `Último acceso: ${value} - ${estados.lastAccess}`;
+                console.log(`✅ Acceso registrado: ${value}`);
+            }
         }
 
         function updateTemperature(value) {
-            const temp = parseFloat(value);
             const statusEl = document.getElementById('temperature-status');
             const valueEl = document.getElementById('temperature-value');
             const card = document.getElementById('temperature');
             
+            if (!statusEl || !valueEl || !card) {
+                console.error('❌ Elementos no encontrados para temperatura');
+                return;
+            }
+            
+            const temp = parseFloat(value);
+            if (isNaN(temp)) {
+                console.error(`❌ Valor de temperatura inválido: ${value}`);
+                return;
+            }
+            
+            console.log(`🌡️ Actualizando temperatura: ${temp}°C`);
             valueEl.textContent = `${temp}°C`;
             
             if (temp < 18 || temp > 26) {
                 statusEl.textContent = 'Alerta';
                 statusEl.className = 'sensor-status status-alert';
                 card.classList.add('warning');
+                console.log('⚠️ Temperatura fuera de rango');
             } else {
                 statusEl.textContent = 'Normal';
                 statusEl.className = 'sensor-status status-normal';
                 card.classList.remove('warning');
+                console.log('✅ Temperatura normal');
             }
         }
 
         function updateHumidity(value) {
-            const hum = parseFloat(value);
             const statusEl = document.getElementById('humidity-status');
             const valueEl = document.getElementById('humidity-value');
             
+            if (!statusEl || !valueEl) {
+                console.error('❌ Elementos no encontrados para humedad');
+                return;
+            }
+            
+            const hum = parseFloat(value);
+            if (isNaN(hum)) {
+                console.error(`❌ Valor de humedad inválido: ${value}`);
+                return;
+            }
+            
+            console.log(`💧 Actualizando humedad: ${hum}%`);
             valueEl.textContent = `${hum}%`;
             
             if (hum < 30 || hum > 70) {
                 statusEl.textContent = 'Alerta';
                 statusEl.className = 'sensor-status status-alert';
+                console.log('⚠️ Humedad fuera de rango');
             } else {
                 statusEl.textContent = 'Normal';
                 statusEl.className = 'sensor-status status-normal';
+                console.log('✅ Humedad normal');
             }
         }
 
@@ -678,14 +775,24 @@
             const statusEl = document.getElementById('irrigation-status');
             const valueEl = document.getElementById('irrigation-value');
             
-            if (state === 'on' || state === 'active') {
+            if (!statusEl || !valueEl) {
+                console.error('❌ Elementos no encontrados para riego');
+                return;
+            }
+            
+            const stateLower = String(state).toLowerCase().trim();
+            console.log(`💧 Actualizando riego: ${stateLower}`);
+            
+            if (stateLower === 'on' || stateLower === 'active' || stateLower === '1' || stateLower === 'true') {
                 statusEl.textContent = 'Activado';
                 statusEl.className = 'sensor-status status-on';
                 estados.lastIrrigation = new Date().toLocaleTimeString();
                 valueEl.textContent = `Último riego: ${estados.lastIrrigation}`;
+                console.log('✅ Riego activado');
             } else {
                 statusEl.textContent = 'Desactivado';
                 statusEl.className = 'sensor-status status-off';
+                console.log('✅ Riego desactivado');
             }
         }
 
@@ -693,49 +800,104 @@
             const valueEl = document.getElementById('plants-value');
             const riskEl = document.getElementById('plants-risk');
             
-            riskEl.className = `plant-risk risk-${risk}`;
+            if (!valueEl || !riskEl) {
+                console.error('❌ Elementos no encontrados para plantas');
+                return;
+            }
             
-            if (risk === 'low') {
+            const riskLower = String(risk).toLowerCase().trim();
+            console.log(`🌱 Actualizando riesgo de plantas: ${riskLower}`);
+            
+            riskEl.className = `plant-risk risk-${riskLower}`;
+            
+            if (riskLower === 'low' || riskLower === 'bajo' || riskLower === '0') {
                 riskEl.textContent = 'Riesgo: Bajo';
                 valueEl.textContent = 'Plantas saludables';
-            } else if (risk === 'medium') {
+                console.log('✅ Riesgo bajo');
+            } else if (riskLower === 'medium' || riskLower === 'medio' || riskLower === '1') {
                 riskEl.textContent = 'Riesgo: Medio';
                 valueEl.textContent = 'Atención requerida';
+                console.log('⚠️ Riesgo medio');
             } else {
                 riskEl.textContent = 'Riesgo: Alto';
                 valueEl.textContent = 'Acción inmediata necesaria';
+                console.log('🚨 Riesgo alto');
             }
         }
 
         function updatePetTemperature(value) {
-            const temp = parseFloat(value);
             const statusEl = document.getElementById('pet-temperature-status');
             const valueEl = document.getElementById('pet-temperature-value');
             
+            if (!statusEl || !valueEl) {
+                console.error('❌ Elementos no encontrados para temperatura de mascotas');
+                return;
+            }
+            
+            const temp = parseFloat(value);
+            if (isNaN(temp)) {
+                console.error(`❌ Valor de temperatura inválido: ${value}`);
+                return;
+            }
+            
+            console.log(`🌡️ Actualizando temperatura mascotas: ${temp}°C`);
             valueEl.textContent = `${temp}°C`;
             
             if (temp < 20 || temp > 28) {
                 statusEl.textContent = 'Alerta';
                 statusEl.className = 'sensor-status status-alert';
+                console.log('⚠️ Temperatura fuera de rango');
             } else {
                 statusEl.textContent = 'Normal';
                 statusEl.className = 'sensor-status status-normal';
+                console.log('✅ Temperatura normal');
             }
         }
 
         function updatePetFans(value) {
-            const data = JSON.parse(value || '{}');
             const statusEl = document.getElementById('pet-fans-status');
             const valueEl = document.getElementById('pet-fans-value');
             
-            if (data.state === 'on' || data.state === 'active') {
-                statusEl.textContent = 'Encendidos';
-                statusEl.className = 'sensor-status status-on';
-                valueEl.textContent = `Velocidad: ${data.speed || 0}%`;
-            } else {
-                statusEl.textContent = 'Apagados';
-                statusEl.className = 'sensor-status status-off';
-                valueEl.textContent = 'Velocidad: 0%';
+            if (!statusEl || !valueEl) {
+                console.error('❌ Elementos no encontrados para ventiladores');
+                return;
+            }
+            
+            try {
+                let data = {};
+                if (typeof value === 'string' && (value.startsWith('{') || value.includes('state'))) {
+                    data = JSON.parse(value);
+                } else {
+                    const stateLower = String(value).toLowerCase().trim();
+                    data = { state: stateLower };
+                }
+                
+                const stateLower = String(data.state || value).toLowerCase().trim();
+                console.log(`🌀 Actualizando ventiladores: ${stateLower}`);
+                
+                if (stateLower === 'on' || stateLower === 'active' || stateLower === '1' || stateLower === 'true') {
+                    statusEl.textContent = 'Encendidos';
+                    statusEl.className = 'sensor-status status-on';
+                    valueEl.textContent = `Velocidad: ${data.speed || 50}%`;
+                    console.log(`✅ Ventiladores encendidos a ${data.speed || 50}%`);
+                } else {
+                    statusEl.textContent = 'Apagados';
+                    statusEl.className = 'sensor-status status-off';
+                    valueEl.textContent = 'Velocidad: 0%';
+                    console.log('✅ Ventiladores apagados');
+                }
+            } catch (error) {
+                console.error('❌ Error parseando datos de ventiladores:', error);
+                const stateLower = String(value).toLowerCase().trim();
+                if (stateLower === 'on' || stateLower === '1') {
+                    statusEl.textContent = 'Encendidos';
+                    statusEl.className = 'sensor-status status-on';
+                    valueEl.textContent = 'Velocidad: 50%';
+                } else {
+                    statusEl.textContent = 'Apagados';
+                    statusEl.className = 'sensor-status status-off';
+                    valueEl.textContent = 'Velocidad: 0%';
+                }
             }
         }
 
@@ -743,22 +905,48 @@
             const statusEl = document.getElementById('pet-status-status');
             const valueEl = document.getElementById('pet-status-value');
             
-            statusEl.textContent = value === 'normal' ? 'Normal' : 'Atención';
-            statusEl.className = value === 'normal' ? 'sensor-status status-normal' : 'sensor-status status-alert';
-            valueEl.textContent = value === 'normal' ? 'Todo en orden' : 'Revisar condiciones';
+            if (!statusEl || !valueEl) {
+                console.error('❌ Elementos no encontrados para estado de mascotas');
+                return;
+            }
+            
+            const valueLower = String(value).toLowerCase().trim();
+            console.log(`📊 Actualizando estado mascotas: ${valueLower}`);
+            
+            if (valueLower === 'normal' || valueLower === 'ok' || valueLower === '1') {
+                statusEl.textContent = 'Normal';
+                statusEl.className = 'sensor-status status-normal';
+                valueEl.textContent = 'Todo en orden';
+                console.log('✅ Estado normal');
+            } else {
+                statusEl.textContent = 'Atención';
+                statusEl.className = 'sensor-status status-alert';
+                valueEl.textContent = 'Revisar condiciones';
+                console.log('⚠️ Estado requiere atención');
+            }
         }
 
         function updatePetFood(value) {
             const statusEl = document.getElementById('pet-food-status');
             const valueEl = document.getElementById('pet-food-value');
             
-            if (value === 'dispensed' || value === 'dispensado') {
+            if (!statusEl || !valueEl) {
+                console.error('❌ Elementos no encontrados para comida');
+                return;
+            }
+            
+            const valueLower = String(value).toLowerCase().trim();
+            console.log(`🍽️ Actualizando comida: ${valueLower}`);
+            
+            if (valueLower === 'dispensed' || valueLower === 'dispensado' || valueLower === 'dispense' || valueLower === '1') {
                 estados.lastFood = new Date().toLocaleTimeString();
                 valueEl.textContent = `Última comida: ${estados.lastFood}`;
                 statusEl.textContent = 'Dispensado';
+                console.log('✅ Comida dispensada');
             } else {
                 statusEl.textContent = 'Listo';
                 valueEl.textContent = 'Última comida: --';
+                console.log('✅ Dispensador listo');
             }
         }
 
@@ -766,36 +954,85 @@
             const statusEl = document.getElementById('pet-water-status');
             const valueEl = document.getElementById('pet-water-value');
             
-            if (value === 'active' || value === 'on') {
+            if (!statusEl || !valueEl) {
+                console.error('❌ Elementos no encontrados para agua');
+                return;
+            }
+            
+            const valueLower = String(value).toLowerCase().trim();
+            console.log(`💧 Actualizando agua: ${valueLower}`);
+            
+            if (valueLower === 'active' || valueLower === 'on' || valueLower === '1' || valueLower === 'true' || valueLower === 'normal') {
                 statusEl.textContent = 'Activo';
                 statusEl.className = 'sensor-status status-active';
                 valueEl.textContent = 'Nivel: Normal';
+                console.log('✅ Agua activa');
             } else {
                 statusEl.textContent = 'Inactivo';
                 statusEl.className = 'sensor-status status-inactive';
                 valueEl.textContent = 'Nivel: Bajo';
+                console.log('⚠️ Agua inactiva');
             }
         }
 
         function updatePetLight(value) {
-            const data = JSON.parse(value || '{}');
             const statusEl = document.getElementById('pet-light-status');
             const valueEl = document.getElementById('pet-light-value');
             
-            if (data.state === 'on' || data.state === 'active') {
-                statusEl.textContent = 'Encendida';
-                statusEl.className = 'sensor-status status-on';
-                valueEl.textContent = `Intensidad: ${data.intensity || 80}%`;
-            } else {
-                statusEl.textContent = 'Apagada';
-                statusEl.className = 'sensor-status status-off';
-                valueEl.textContent = 'Intensidad: 0%';
+            if (!statusEl || !valueEl) {
+                console.error('❌ Elementos no encontrados para luz');
+                return;
+            }
+            
+            try {
+                let data = {};
+                if (typeof value === 'string' && (value.startsWith('{') || value.includes('state'))) {
+                    data = JSON.parse(value);
+                } else {
+                    const stateLower = String(value).toLowerCase().trim();
+                    data = { state: stateLower };
+                }
+                
+                const stateLower = String(data.state || value).toLowerCase().trim();
+                console.log(`💡 Actualizando luz: ${stateLower}`);
+                
+                if (stateLower === 'on' || stateLower === 'active' || stateLower === '1' || stateLower === 'true') {
+                    statusEl.textContent = 'Encendida';
+                    statusEl.className = 'sensor-status status-on';
+                    valueEl.textContent = `Intensidad: ${data.intensity || 80}%`;
+                    console.log(`✅ Luz encendida a ${data.intensity || 80}%`);
+                } else {
+                    statusEl.textContent = 'Apagada';
+                    statusEl.className = 'sensor-status status-off';
+                    valueEl.textContent = 'Intensidad: 0%';
+                    console.log('✅ Luz apagada');
+                }
+            } catch (error) {
+                console.error('❌ Error parseando datos de luz:', error);
+                const stateLower = String(value).toLowerCase().trim();
+                if (stateLower === 'on' || stateLower === '1') {
+                    statusEl.textContent = 'Encendida';
+                    statusEl.className = 'sensor-status status-on';
+                    valueEl.textContent = 'Intensidad: 80%';
+                } else {
+                    statusEl.textContent = 'Apagada';
+                    statusEl.className = 'sensor-status status-off';
+                    valueEl.textContent = 'Intensidad: 0%';
+                }
             }
         }
 
         function updatePetMessage(value) {
             const messageEl = document.getElementById('pet-message-text');
+            
+            if (!messageEl) {
+                console.error('❌ Elemento no encontrado para mensajes');
+                return;
+            }
+            
+            console.log(`💬 Actualizando mensaje: ${value}`);
             messageEl.textContent = value || 'No hay mensajes nuevos';
+            console.log('✅ Mensaje actualizado');
         }
 
         function addLog(message, type = 'info') {
