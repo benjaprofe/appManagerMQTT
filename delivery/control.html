@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Sistema de Delivery</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .status.connected {
+            background: #4caf50;
+            color: white;
+        }
+        .status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            width: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-primary {
+            background: #667eea;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-success {
+            background: #4caf50;
+        }
+        .btn-success:hover {
+            background: #45a049;
+        }
+        .btn-warning {
+            background: #ff9800;
+        }
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+        .btn-danger {
+            background: #f44336;
+        }
+        .btn-danger:hover {
+            background: #da190b;
+        }
+        .btn-info {
+            background: #2196F3;
+        }
+        .btn-info:hover {
+            background: #1976D2;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+        .notification.show {
+            display: block;
+        }
+        .notification.error {
+            background: #f44336;
+        }
+        .notification.warning {
+            background: #ff9800;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .order-preview {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 2px solid #ddd;
+        }
+        .order-preview h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .order-preview p {
+            margin: 5px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚚 Panel de Control - Sistema de Delivery</h1>
+        <div id="status" class="status disconnected">Desconectado</div>
+        <div id="notification" class="notification"></div>
+        
+        <!-- Crear Nuevo Pedido -->
+        <div class="section">
+            <h2>📦 Crear Nuevo Pedido</h2>
+            <form id="newOrderForm">
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label for="orderId">ID del Pedido</label>
+                        <input type="text" id="orderId" placeholder="Ej: ORD-001" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer">Cliente</label>
+                        <input type="text" id="customer" placeholder="Nombre del cliente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Dirección de Entrega</label>
+                        <textarea id="address" placeholder="Dirección completa" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="items">Items del Pedido</label>
+                        <textarea id="items" placeholder="Descripción de los items" required></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 15px;">
+                    ➕ Crear Pedido
+                </button>
+            </form>
+        </div>
+
+        <!-- Gestionar Pedidos -->
+        <div class="section">
+            <h2>🎮 Gestionar Pedidos</h2>
+            <div class="controls-grid">
+                <div class="form-group">
+                    <label for="manageOrderId">ID del Pedido</label>
+                    <input type="text" id="manageOrderId" placeholder="Ej: ORD-001" required>
+                </div>
+                <div class="form-group">
+                    <label for="orderStatus">Cambiar Estado</label>
+                    <select id="orderStatus">
+                        <option value="pending">Pendiente</option>
+                        <option value="in-transit">En Camino</option>
+                        <option value="delivered">Entregado</option>
+                        <option value="cancelled">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+            <div class="controls-grid">
+                <button class="btn btn-success" onclick="updateOrderStatus()">
+                    ✅ Actualizar Estado
+                </button>
+                <button class="btn btn-info" onclick="assignRider()">
+                    🚴 Asignar Repartidor
+                </button>
+                <button class="btn btn-warning" onclick="updateOrderLocation()">
+                    📍 Actualizar Ubicación
+                </button>
+                <button class="btn btn-danger" onclick="cancelOrder()">
+                    ❌ Cancelar Pedido
+                </button>
+            </div>
+        </div>
+
+        <!-- Control del Repartidor -->
+        <div class="section">
+            <h2>🚴 Control del Repartidor</h2>
+            <div class="controls-grid">
+                <div class="form-group">
+                    <label for="riderId">ID del Repartidor</label>
+                    <input type="text" id="riderId" value="R-001" placeholder="R-001">
+                </div>
+                <div class="form-group">
+                    <label for="riderStatus">Estado del Repartidor</label>
+                    <select id="riderStatus">
+                        <option value="disponible">Disponible</option>
+                        <option value="ocupado">Ocupado</option>
+                        <option value="en-camino">En Camino</option>
+                        <option value="descanso">En Descanso</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="riderLocation">Ubicación</label>
+                    <input type="text" id="riderLocation" placeholder="Ej: Calle Principal 123">
+                </div>
+                <div class="form-group">
+                    <label for="riderX">Posición X (%)</label>
+                    <input type="number" id="riderX" min="0" max="100" value="10" placeholder="10">
+                </div>
+                <div class="form-group">
+                    <label for="riderY">Posición Y (%)</label>
+                    <input type="number" id="riderY" min="0" max="100" value="50" placeholder="50">
+                </div>
+            </div>
+            <div class="controls-grid">
+                <button class="btn btn-primary" onclick="updateRiderStatus()">
+                    🔄 Actualizar Estado
+                </button>
+                <button class="btn btn-info" onclick="updateRiderLocation()">
+                    📍 Actualizar Ubicación
+                </button>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="section">
+            <h2>⚡ Acciones Rápidas</h2>
+            <div class="controls-grid">
+                <button class="btn btn-success" onclick="createSampleOrder()">
+                    📦 Crear Pedido de Ejemplo
+                </button>
+                <button class="btn btn-warning" onclick="simulateDelivery()">
+                    🎮 Simular Entrega
+                </button>
+                <button class="btn btn-info" onclick="resetSystem()">
+                    🔄 Reiniciar Sistema
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_delivery');
+
+        client.on("connect", () => {
+            console.log("Panel de Control de Delivery conectado!");
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+            mostrarNotificacion("✅ Conectado a MQTT", "success");
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("❌ Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("⚠️ Desconectado de MQTT", "error");
+        });
+
+        client.on("reconnect", () => {
+            document.getElementById("status").textContent = "🔄 Reconectando...";
+            mostrarNotificacion("🔄 Intentando reconectar...", "warning");
+        });
+
+        function mostrarNotificacion(mensaje, tipo = "success") {
+            const notification = document.getElementById("notification");
+            notification.textContent = mensaje;
+            notification.className = `notification show ${tipo}`;
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        function publicarConConfirmacion(topic, data, descripcion) {
+            if (!client.connected) {
+                mostrarNotificacion("❌ No conectado a MQTT", "error");
+                return;
+            }
+            
+            const message = typeof data === 'string' ? data : JSON.stringify(data);
+            
+            client.publish(topic, message, { qos: 1 }, (err) => {
+                if (err) {
+                    console.error(`Error publicando ${topic}:`, err);
+                    mostrarNotificacion(`❌ Error: ${descripcion}`, "error");
+                } else {
+                    console.log(`✅ Publicado: ${topic} = ${message}`);
+                    mostrarNotificacion(`✅ ${descripcion}`, "success");
+                }
+            });
+        }
+
+        // Formulario de nuevo pedido
+        document.getElementById("newOrderForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            crearNuevoPedido();
+        });
+
+        function crearNuevoPedido() {
+            const orderId = document.getElementById("orderId").value;
+            const customer = document.getElementById("customer").value;
+            const address = document.getElementById("address").value;
+            const items = document.getElementById("items").value;
+
+            // Generar posición aleatoria en el mapa
+            const positions = [
+                { x: 20, y: 30 },
+                { x: 40, y: 20 },
+                { x: 60, y: 40 },
+                { x: 80, y: 30 },
+                { x: 30, y: 60 },
+                { x: 70, y: 70 },
+                { x: 50, y: 80 }
+            ];
+            const randomPos = positions[Math.floor(Math.random() * positions.length)];
+
+            const order = {
+                id: orderId,
+                customer: customer,
+                address: address,
+                items: items,
+                location: randomPos,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            publicarConConfirmacion("delivery/order/new", order, `Pedido ${orderId} creado`);
+            
+            // Limpiar formulario
+            document.getElementById("newOrderForm").reset();
+        }
+
+        function updateOrderStatus() {
+            const orderId = document.getElementById("manageOrderId").value;
+            const status = document.getElementById("orderStatus").value;
+
+            if (!orderId) {
+                mostrarNotificacion("⚠️ Ingresa un ID de pedido", "warning");
+                return;
+            }
+
+            const data = {
+                orderId: orderId,
+                status: status
+            };
+
+            publicarConConfirmacion("delivery/order/status", data, `Estado de ${orderId} actualizado a ${status}`);
+        }
+
+        function assignRider() {
+            const orderId = document.getElementById("manageOrderId").value;
+            const riderId = document.getElementById("riderId").value || "R-001";
+
+            if (!orderId) {
+                mostrarNotificacion("⚠️ Ingresa un ID de pedido", "warning");
+                return;
+            }
+
+            const data = {
+                orderId: orderId,
+                riderId: riderId
+            };
+
+            publicarConConfirmacion("delivery/rider/assign", data, `Pedido ${orderId} asignado a ${riderId}`);
+        }
+
+        function updateOrderLocation() {
+            const orderId = document.getElementById("manageOrderId").value;
+            const x = Math.floor(Math.random() * 80) + 10;
+            const y = Math.floor(Math.random() * 80) + 10;
+
+            if (!orderId) {
+                mostrarNotificacion("⚠️ Ingresa un ID de pedido", "warning");
+                return;
+            }
+
+            const data = {
+                orderId: orderId,
+                location: { x: x, y: y }
+            };
+
+            publicarConConfirmacion("delivery/order/location", data, `Ubicación de ${orderId} actualizada`);
+        }
+
+        function cancelOrder() {
+            const orderId = document.getElementById("manageOrderId").value;
+
+            if (!orderId) {
+                mostrarNotificacion("⚠️ Ingresa un ID de pedido", "warning");
+                return;
+            }
+
+            const data = {
+                orderId: orderId,
+                status: 'cancelled'
+            };
+
+            publicarConConfirmacion("delivery/order/status", data, `Pedido ${orderId} cancelado`);
+        }
+
+        function updateRiderStatus() {
+            const riderId = document.getElementById("riderId").value || "R-001";
+            const status = document.getElementById("riderStatus").value;
+            const deliveries = Math.floor(Math.random() * 10);
+
+            const data = {
+                riderId: riderId,
+                status: status,
+                deliveries: deliveries
+            };
+
+            publicarConConfirmacion("delivery/rider/status", data, `Estado del repartidor ${riderId} actualizado`);
+        }
+
+        function updateRiderLocation() {
+            const riderId = document.getElementById("riderId").value || "R-001";
+            const location = document.getElementById("riderLocation").value || "En ruta";
+            const x = parseInt(document.getElementById("riderX").value) || 10;
+            const y = parseInt(document.getElementById("riderY").value) || 50;
+
+            const data = {
+                riderId: riderId,
+                location: location,
+                x: x,
+                y: y
+            };
+
+            publicarConConfirmacion("delivery/rider/location", data, `Ubicación del repartidor ${riderId} actualizada`);
+        }
+
+        function createSampleOrder() {
+            const orders = [
+                { id: 'ORD-001', customer: 'Juan Pérez', address: 'Av. Principal 123', items: 'Pizza Grande, Refresco' },
+                { id: 'ORD-002', customer: 'María García', address: 'Calle Secundaria 456', items: 'Hamburguesa, Papas' },
+                { id: 'ORD-003', customer: 'Carlos López', address: 'Boulevard Norte 789', items: 'Sushi, Sake' },
+                { id: 'ORD-004', customer: 'Ana Martínez', address: 'Plaza Central 321', items: 'Tacos, Agua' }
+            ];
+
+            const randomOrder = orders[Math.floor(Math.random() * orders.length)];
+            const positions = [
+                { x: 20, y: 30 },
+                { x: 40, y: 20 },
+                { x: 60, y: 40 },
+                { x: 80, y: 30 }
+            ];
+            const randomPos = positions[Math.floor(Math.random() * positions.length)];
+
+            const order = {
+                ...randomOrder,
+                location: randomPos,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            publicarConConfirmacion("delivery/order/new", order, `Pedido de ejemplo ${order.id} creado`);
+        }
+
+        function simulateDelivery() {
+            const orderId = 'ORD-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+            
+            // Crear pedido
+            const order = {
+                id: orderId,
+                customer: 'Cliente Demo',
+                address: 'Dirección de Prueba',
+                items: 'Items de Prueba',
+                location: { x: 30, y: 40 },
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+            
+            publicarConConfirmacion("delivery/order/new", order, `Simulación: Pedido ${orderId} creado`);
+            
+            // Simular progreso
+            setTimeout(() => {
+                publicarConConfirmacion("delivery/rider/assign", { orderId: orderId, riderId: 'R-001' }, `Simulación: Pedido asignado`);
+            }, 1000);
+            
+            setTimeout(() => {
+                publicarConConfirmacion("delivery/order/status", { orderId: orderId, status: 'in-transit' }, `Simulación: Pedido en camino`);
+            }, 2000);
+            
+            setTimeout(() => {
+                publicarConConfirmacion("delivery/order/status", { orderId: orderId, status: 'delivered' }, `Simulación: Pedido entregado`);
+            }, 5000);
+        }
+
+        function resetSystem() {
+            if (confirm('¿Estás seguro de que quieres reiniciar el sistema? Esto limpiará todos los pedidos.')) {
+                publicarConConfirmacion("delivery/system/reset", { action: 'reset' }, "Sistema reiniciado");
+            }
+        }
+    </script>
+</body>
+</html>
+

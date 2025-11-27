@@ -17,8 +17,20 @@ const mqttConfig = {
   // Cliente para el proyecto Tren/Metro
   client_tren: {
     url: "wss://ea85403b34ed493fb528ace645709065.s1.eu.hivemq.cloud:8884/mqtt",
-    username: "bemtorres1A",
-    password: "bemtorres1A",
+    username: "hivemq.webclient.1764265045956",
+    password: "G6j53rvn$*xA8OS:gL#M",
+    options: {
+      clean: true,
+      connectTimeout: 4000,
+      reconnectPeriod: 1000
+    }
+  },
+  
+  // Cliente para el proyecto Delivery
+  client_delivery: {
+    url: "wss://ea85403b34ed493fb528ace645709065.s1.eu.hivemq.cloud:8884/mqtt",
+    username: "hivemq.webclient.1764265045956",
+    password: "G6j53rvn$*xA8OS:gL#M",
     options: {
       clean: true,
       connectTimeout: 4000,
@@ -57,3 +69,4 @@ function createMqttClient(clientName) {
 // Crear instancias de clientes (opcional, para compatibilidad)
 const client_hogar = createMqttClient('client_hogar');
 const client_tren = createMqttClient('client_tren');
+const client_delivery = createMqttClient('client_delivery');
