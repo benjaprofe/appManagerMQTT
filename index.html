@@ -75,7 +75,7 @@
                 <h2 class="text-4xl font-bold text-center mb-12 text-gray-800">
                     <i class="fas fa-info-circle text-indigo-600"></i> Sobre el Proyecto
                 </h2>
-                <div class="grid md:grid-cols-2 gap-8">
+                <div class="grid md:grid-cols-2 gap-8 mb-8">
                     <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl shadow-md">
                         <i class="fas fa-lightbulb text-4xl text-indigo-600 mb-4"></i>
                         <h3 class="text-2xl font-bold mb-3 text-gray-800">Objetivo</h3>
@@ -92,6 +92,46 @@
                             <li><i class="fas fa-check text-green-500"></i> Configuración centralizada</li>
                             <li><i class="fas fa-check text-green-500"></i> Interfaz web moderna</li>
                         </ul>
+                    </div>
+                </div>
+
+                <!-- Requisitos -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-lg p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-800 text-center">
+                        <i class="fas fa-clipboard-list text-indigo-600"></i> Requisitos del Proyecto
+                    </h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex items-center mb-3">
+                                <i class="fas fa-cloud text-blue-600 text-2xl mr-3"></i>
+                                <h4 class="text-xl font-bold text-gray-800">HiveMQ Cloud</h4>
+                            </div>
+                            <p class="text-gray-700 text-sm mb-3">
+                                Necesitas crear una cuenta gratuita en HiveMQ Cloud para sincronizar el MQTT y gestionar la comunicación entre dispositivos.
+                            </p>
+                            <a href="#tutorial" class="text-blue-600 hover:underline text-sm font-semibold">
+                                Ver tutorial de configuración →
+                            </a>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex items-center mb-3">
+                                <i class="fas fa-database text-orange-600 text-2xl mr-3"></i>
+                                <h4 class="text-xl font-bold text-gray-800">Firebase</h4>
+                            </div>
+                            <p class="text-gray-700 text-sm mb-3">
+                                Requerido para visualizar las bases de datos y usar Firebase Realtime Database para almacenamiento y sincronización en tiempo real.
+                            </p>
+                            <a href="#tutorial" class="text-orange-600 hover:underline text-sm font-semibold">
+                                Ver tutorial de configuración →
+                            </a>
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg">
+                        <p class="text-sm text-gray-700">
+                            <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                            <strong>Nota:</strong> Ambos servicios ofrecen planes gratuitos que son suficientes para este proyecto educativo. 
+                            El tutorial completo está disponible en la sección <a href="#tutorial" class="text-indigo-600 hover:underline font-semibold">Tutorial</a>.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -282,15 +322,42 @@
                 <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
                     <div class="flex items-center mb-4">
                         <div class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">1</div>
-                        <h3 class="text-2xl font-bold text-gray-800">Configurar el Broker MQTT</h3>
+                        <h3 class="text-2xl font-bold text-gray-800">Crear Cuenta en HiveMQ Cloud</h3>
                     </div>
                     <p class="text-gray-700 mb-4">
-                        Primero necesitas un broker MQTT. Puedes usar servicios gratuitos como HiveMQ Cloud o instalar tu propio broker.
+                        Para este proyecto necesitas crear una cuenta en <strong>HiveMQ Cloud</strong> para sincronizar el MQTT. Es gratuito y perfecto para proyectos educativos.
                     </p>
-                    <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                        <p class="text-sm text-gray-600 mb-2"><strong>Opciones de Broker:</strong></p>
+                    
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg mb-4">
+                        <h4 class="font-bold text-lg mb-3 text-gray-800">
+                            <i class="fas fa-cloud text-blue-600 mr-2"></i>Pasos para crear cuenta en HiveMQ Cloud:
+                        </h4>
+                        <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                            <li>Visita <a href="https://www.hivemq.com/cloud/" target="_blank" class="text-blue-600 hover:underline font-semibold">hivemq.com/cloud</a></li>
+                            <li>Haz clic en <strong>"Start Free"</strong> o <strong>"Sign Up"</strong></li>
+                            <li>Completa el formulario de registro con tu email</li>
+                            <li>Verifica tu email (revisa tu bandeja de entrada)</li>
+                            <li>Inicia sesión en tu cuenta</li>
+                            <li>Crea un nuevo cluster (elige la opción gratuita)</li>
+                            <li>Selecciona la región más cercana a ti</li>
+                            <li>Una vez creado, ve a <strong>"Access Management"</strong> → <strong>"Credentials"</strong></li>
+                            <li>Crea un nuevo usuario con contraseña</li>
+                            <li>Copia la <strong>URL del broker</strong> (formato: <code class="bg-gray-200 px-1 rounded">wss://xxxxx.s1.eu.hivemq.cloud:8884/mqtt</code>)</li>
+                            <li>Guarda tu <strong>username</strong> y <strong>password</strong> de forma segura</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mb-4">
+                        <p class="text-sm text-gray-700">
+                            <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                            <strong>Importante:</strong> El plan gratuito permite hasta 25 conexiones simultáneas, lo cual es suficiente para este proyecto.
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600 mb-2"><strong>Alternativas de Broker:</strong></p>
                         <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            <li>HiveMQ Cloud (gratis hasta 25 conexiones)</li>
+                            <li>HiveMQ Cloud (recomendado para este proyecto)</li>
                             <li>Mosquitto (broker local gratuito)</li>
                             <li>AWS IoT Core</li>
                             <li>Azure IoT Hub</li>
@@ -298,21 +365,105 @@
                     </div>
                 </div>
 
+                <!-- Step 1.5 - Firebase -->
+                <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-orange-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">1.5</div>
+                        <h3 class="text-2xl font-bold text-gray-800">Crear Cuenta en Firebase</h3>
+                    </div>
+                    <p class="text-gray-700 mb-4">
+                        Para visualizar las bases de datos y usar Firebase Realtime Database, necesitas crear una cuenta en Firebase.
+                    </p>
+                    
+                    <div class="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-lg mb-4">
+                        <h4 class="font-bold text-lg mb-3 text-gray-800">
+                            <i class="fas fa-database text-orange-600 mr-2"></i>Pasos para crear cuenta en Firebase:
+                        </h4>
+                        <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                            <li>Visita <a href="https://console.firebase.google.com/" target="_blank" class="text-orange-600 hover:underline font-semibold">console.firebase.google.com</a></li>
+                            <li>Haz clic en <strong>"Comenzar"</strong> o <strong>"Get Started"</strong></li>
+                            <li>Inicia sesión con tu cuenta de Google (o crea una si no tienes)</li>
+                            <li>Haz clic en <strong>"Agregar proyecto"</strong> o <strong>"Add project"</strong></li>
+                            <li>Ingresa un nombre para tu proyecto (ej: "iot-mqtt-project")</li>
+                            <li>Acepta los términos y condiciones</li>
+                            <li>Opcional: Desactiva Google Analytics si no lo necesitas</li>
+                            <li>Haz clic en <strong>"Crear proyecto"</strong></li>
+                            <li>Espera a que se cree el proyecto (puede tardar unos minutos)</li>
+                            <li>En el menú lateral, ve a <strong>"Realtime Database"</strong></li>
+                            <li>Haz clic en <strong>"Crear base de datos"</strong></li>
+                            <li>Elige la ubicación más cercana</li>
+                            <li>Para desarrollo, inicia en <strong>"modo de prueba"</strong> (puedes cambiar las reglas después)</li>
+                            <li>Copia la <strong>URL de la base de datos</strong> (formato: <code class="bg-gray-200 px-1 rounded">https://tu-proyecto-default-rtdb.firebaseio.com/</code>)</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4">
+                        <h4 class="font-bold mb-2 text-gray-800">
+                            <i class="fas fa-cog text-blue-600 mr-2"></i>Configurar Reglas de Seguridad:
+                        </h4>
+                        <p class="text-sm text-gray-700 mb-2">
+                            En <strong>"Reglas"</strong> de Realtime Database, para desarrollo puedes usar:
+                        </p>
+                        <div class="code-block p-3 rounded text-white text-xs overflow-x-auto">
+                            <pre><code>{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}</code></pre>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-2">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mr-1"></i>
+                            <strong>Nota:</strong> Estas reglas permiten lectura/escritura a todos. Para producción, configura reglas más restrictivas.
+                        </p>
+                    </div>
+
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+                        <p class="text-sm text-gray-700">
+                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                            <strong>Ventajas de Firebase:</strong> Base de datos en tiempo real, sincronización automática, fácil integración con aplicaciones web, y plan gratuito generoso.
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Step 2 -->
                 <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
                     <div class="flex items-center mb-4">
                         <div class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">2</div>
-                        <h3 class="text-2xl font-bold text-gray-800">Configurar Credenciales</h3>
+                        <h3 class="text-2xl font-bold text-gray-800">Configurar Credenciales MQTT</h3>
                     </div>
                     <p class="text-gray-700 mb-4">
-                        Edita el archivo <code class="bg-gray-200 px-2 py-1 rounded">env/credential.js</code> con tus credenciales del broker.
+                        Edita el archivo <code class="bg-gray-200 px-2 py-1 rounded">env/credential.js</code> con las credenciales que obtuviste de HiveMQ Cloud.
                     </p>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4">
+                        <p class="text-sm text-gray-700 mb-2">
+                            <strong>Datos que necesitas de HiveMQ Cloud:</strong>
+                        </p>
+                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                            <li>URL del broker (ej: <code class="bg-gray-200 px-1 rounded">wss://xxxxx.s1.eu.hivemq.cloud:8884/mqtt</code>)</li>
+                            <li>Username (el que creaste en Access Management)</li>
+                            <li>Password (la contraseña que configuraste)</li>
+                        </ul>
+                    </div>
                     <div class="code-block p-4 rounded-lg text-white text-sm overflow-x-auto">
                         <pre><code>const mqttConfig = {
   client_hogar: {
-    url: "wss://tu-broker.com:8884/mqtt",
-    username: "tu_usuario",
-    password: "tu_contraseña",
+    // URL de HiveMQ Cloud (copia desde tu dashboard)
+    url: "wss://xxxxx.s1.eu.hivemq.cloud:8884/mqtt",
+    // Username que creaste en HiveMQ Cloud
+    username: "tu_usuario_hivemq",
+    // Password que configuraste
+    password: "tu_contraseña_hivemq",
+    options: {
+      clean: true,
+      connectTimeout: 4000,
+      reconnectPeriod: 1000
+    }
+  },
+  client_tren: {
+    url: "wss://xxxxx.s1.eu.hivemq.cloud:8884/mqtt",
+    username: "tu_usuario_hivemq",
+    password: "tu_contraseña_hivemq",
     options: {
       clean: true,
       connectTimeout: 4000,
@@ -320,6 +471,12 @@
     }
   }
 };</code></pre>
+                    </div>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mt-4">
+                        <p class="text-sm text-gray-700">
+                            <i class="fas fa-shield-alt text-yellow-600 mr-2"></i>
+                            <strong>Seguridad:</strong> No compartas tus credenciales públicamente. El archivo <code>env/credential.js</code> debería estar en <code>.gitignore</code> si usas Git.
+                        </p>
                     </div>
                 </div>
 
