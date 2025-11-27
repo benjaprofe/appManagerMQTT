@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Administrador Ciber</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .status.connected {
+            background: #4caf50;
+            color: white;
+        }
+        .status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border-left: 5px solid #1a1a2e;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            width: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-primary {
+            background: #1a1a2e;
+        }
+        .btn-primary:hover {
+            background: #0f0f1e;
+        }
+        .btn-success {
+            background: #4caf50;
+        }
+        .btn-success:hover {
+            background: #45a049;
+        }
+        .btn-danger {
+            background: #f44336;
+        }
+        .btn-danger:hover {
+            background: #da190b;
+        }
+        .btn-warning {
+            background: #ff9800;
+        }
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+        .btn-info {
+            background: #2196F3;
+        }
+        .btn-info:hover {
+            background: #1976D2;
+        }
+        .computers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .computer-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .computer-card:hover {
+            border-color: #1a1a2e;
+            transform: translateY(-3px);
+        }
+        .computer-id {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #1a1a2e;
+        }
+        .computer-status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin: 5px 0;
+            display: inline-block;
+        }
+        .status-on {
+            background: #4caf50;
+            color: white;
+        }
+        .status-off {
+            background: #666;
+            color: white;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+        .notification.show {
+            display: block;
+        }
+        .notification.error {
+            background: #f44336;
+        }
+        .notification.warning {
+            background: #ff9800;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .alert-section {
+            background: rgba(255, 152, 0, 0.1);
+            border: 2px solid #ff9800;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💻 Panel de Control - Administrador Ciber</h1>
+        <div id="status" class="status disconnected">Desconectado</div>
+        <div id="notification" class="notification"></div>
+        
+        <!-- Control Individual de Computadores -->
+        <div class="section">
+            <h2>🖥️ Control de Computadores</h2>
+            <div class="form-group">
+                <label for="computerId">Seleccionar Computador</label>
+                <select id="computerId">
+                    <option value="">Seleccionar...</option>
+                    <option value="PC-01">PC-01</option>
+                    <option value="PC-02">PC-02</option>
+                    <option value="PC-03">PC-03</option>
+                    <option value="PC-04">PC-04</option>
+                    <option value="PC-05">PC-05</option>
+                    <option value="PC-06">PC-06</option>
+                    <option value="PC-07">PC-07</option>
+                    <option value="PC-08">PC-08</option>
+                    <option value="PC-09">PC-09</option>
+                    <option value="PC-10">PC-10</option>
+                </select>
+            </div>
+            <div class="controls-grid">
+                <button class="btn btn-success" onclick="controlComputer('on')">🟢 Encender Computador</button>
+                <button class="btn btn-danger" onclick="controlComputer('off')">🔴 Apagar Computador</button>
+                <button class="btn btn-info" onclick="controlInternet('on')">🌐 Activar Internet</button>
+                <button class="btn btn-warning" onclick="controlInternet('off')">🚫 Desactivar Internet</button>
+            </div>
+        </div>
+
+        <!-- Control Masivo -->
+        <div class="section">
+            <h2>⚡ Control Masivo</h2>
+            <div class="controls-grid">
+                <button class="btn btn-success" onclick="controlAllComputers('on')">🟢 Encender Todos</button>
+                <button class="btn btn-danger" onclick="controlAllComputers('off')">🔴 Apagar Todos</button>
+                <button class="btn btn-info" onclick="controlAllInternet('on')">🌐 Activar Internet Todos</button>
+                <button class="btn btn-warning" onclick="controlAllInternet('off')">🚫 Desactivar Internet Todos</button>
+            </div>
+        </div>
+
+        <!-- Envío de Alertas -->
+        <div class="section">
+            <h2>🚨 Envío de Alertas al Monitor</h2>
+            <div class="alert-section">
+                <div class="form-group">
+                    <label for="alertType">Tipo de Alerta</label>
+                    <select id="alertType">
+                        <option value="info">Información</option>
+                        <option value="warning">Advertencia</option>
+                        <option value="error">Error</option>
+                        <option value="success">Éxito</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="alertMessage">Mensaje de Alerta</label>
+                    <textarea id="alertMessage" placeholder="Escribe el mensaje que se mostrará en el monitor..."></textarea>
+                </div>
+                <button class="btn btn-warning" onclick="sendAlert()">📢 Enviar Alerta al Monitor</button>
+            </div>
+        </div>
+
+        <!-- Estado de Computadores -->
+        <div class="section">
+            <h2>📊 Estado de Computadores</h2>
+            <div class="computers-grid" id="computersStatus">
+                <!-- Los estados se actualizarán dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Gestión de Usuarios -->
+        <div class="section">
+            <h2>👤 Gestión de Usuarios</h2>
+            <div class="controls-grid">
+                <div class="form-group">
+                    <label for="userComputerId">Computador</label>
+                    <select id="userComputerId">
+                        <option value="">Seleccionar...</option>
+                        <option value="PC-01">PC-01</option>
+                        <option value="PC-02">PC-02</option>
+                        <option value="PC-03">PC-03</option>
+                        <option value="PC-04">PC-04</option>
+                        <option value="PC-05">PC-05</option>
+                        <option value="PC-06">PC-06</option>
+                        <option value="PC-07">PC-07</option>
+                        <option value="PC-08">PC-08</option>
+                        <option value="PC-09">PC-09</option>
+                        <option value="PC-10">PC-10</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="userId">ID de Usuario</label>
+                    <input type="text" id="userId" placeholder="Ej: USR-001">
+                </div>
+                <div class="form-group">
+                    <label for="userName">Nombre de Usuario</label>
+                    <input type="text" id="userName" placeholder="Ej: Juan Pérez">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="assignUser()">👤 Asignar Usuario</button>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="section">
+            <h2>⚡ Acciones Rápidas</h2>
+            <div class="controls-grid">
+                <button class="btn btn-primary" onclick="simulateComputerOn()">🎮 Simular Computador Encendido</button>
+                <button class="btn btn-info" onclick="simulateInternetOn()">🌐 Simular Internet Activado</button>
+                <button class="btn btn-success" onclick="resetAllTimers()">🔄 Reiniciar Tiempos de Uso</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_cyber');
+
+        const computersStatus = {};
+
+        client.on("connect", () => {
+            console.log("Panel de Control Cyber conectado!");
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+            mostrarNotificacion("✅ Conectado a MQTT", "success");
+            
+            // Suscribirse a estados para actualizar el panel
+            for (let i = 1; i <= 10; i++) {
+                const compId = `PC-${String(i).padStart(2, '0')}`;
+                client.subscribe(`cyber/computador/${compId}/state`, { qos: 1 });
+                client.subscribe(`cyber/computador/${compId}/internet`, { qos: 1 });
+            }
+            
+            renderComputersStatus();
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("❌ Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("⚠️ Desconectado de MQTT", "error");
+        });
+
+        client.on("reconnect", () => {
+            document.getElementById("status").textContent = "🔄 Reconectando...";
+            mostrarNotificacion("🔄 Intentando reconectar...", "warning");
+        });
+
+        client.on("message", (topic, message) => {
+            const msg = message.toString();
+            const parts = topic.split('/');
+            const compId = parts[2];
+            
+            if (compId && computersStatus[compId]) {
+                if (topic.includes('/state')) {
+                    computersStatus[compId].status = msg;
+                } else if (topic.includes('/internet')) {
+                    computersStatus[compId].internet = msg;
+                }
+                renderComputersStatus();
+            }
+        });
+
+        function mostrarNotificacion(mensaje, tipo = "success") {
+            const notification = document.getElementById("notification");
+            notification.textContent = mensaje;
+            notification.className = `notification show ${tipo}`;
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        function publicarConConfirmacion(topic, value, descripcion) {
+            if (!client.connected) {
+                mostrarNotificacion("❌ No conectado a MQTT", "error");
+                return;
+            }
+            
+            const message = typeof value === 'string' ? value : JSON.stringify(value);
+            
+            client.publish(topic, message, { qos: 1 }, (err) => {
+                if (err) {
+                    console.error(`Error publicando ${topic}:`, err);
+                    mostrarNotificacion(`❌ Error: ${descripcion}`, "error");
+                } else {
+                    console.log(`✅ Publicado: ${topic} = ${message}`);
+                    mostrarNotificacion(`✅ ${descripcion}`, "success");
+                }
+            });
+        }
+
+        function getSelectedComputer() {
+            const compId = document.getElementById("computerId").value;
+            if (!compId) {
+                mostrarNotificacion("⚠️ Selecciona un computador", "warning");
+                return null;
+            }
+            return compId;
+        }
+
+        // Control Individual
+        function controlComputer(state) {
+            const compId = getSelectedComputer();
+            if (!compId) return;
+            
+            const accion = state === 'on' ? 'Encendiendo' : 'Apagando';
+            publicarConConfirmacion(`cyber/computador/${compId}/state/set`, state, `${accion} ${compId}`);
+        }
+
+        function controlInternet(state) {
+            const compId = getSelectedComputer();
+            if (!compId) return;
+            
+            const accion = state === 'on' ? 'Activando internet' : 'Desactivando internet';
+            publicarConConfirmacion(`cyber/computador/${compId}/internet/set`, state, `${accion} en ${compId}`);
+        }
+
+        // Control Masivo
+        function controlAllComputers(state) {
+            if (!confirm(`¿Estás seguro de ${state === 'on' ? 'encender' : 'apagar'} todos los computadores?`)) {
+                return;
+            }
+            
+            for (let i = 1; i <= 10; i++) {
+                const compId = `PC-${String(i).padStart(2, '0')}`;
+                setTimeout(() => {
+                    publicarConConfirmacion(`cyber/computador/${compId}/state/set`, state, `${state === 'on' ? 'Encendiendo' : 'Apagando'} ${compId}`);
+                }, i * 200);
+            }
+        }
+
+        function controlAllInternet(state) {
+            if (!confirm(`¿Estás seguro de ${state === 'on' ? 'activar' : 'desactivar'} internet en todos los computadores?`)) {
+                return;
+            }
+            
+            for (let i = 1; i <= 10; i++) {
+                const compId = `PC-${String(i).padStart(2, '0')}`;
+                setTimeout(() => {
+                    publicarConConfirmacion(`cyber/computador/${compId}/internet/set`, state, `${state === 'on' ? 'Activando' : 'Desactivando'} internet en ${compId}`);
+                }, i * 200);
+            }
+        }
+
+        // Envío de Alertas
+        function sendAlert() {
+            const message = document.getElementById("alertMessage").value;
+            const type = document.getElementById("alertType").value;
+            
+            if (!message.trim()) {
+                mostrarNotificacion("⚠️ Ingresa un mensaje de alerta", "warning");
+                return;
+            }
+            
+            const alertData = {
+                message: message,
+                type: type,
+                timestamp: new Date().toISOString(),
+                from: 'Administrador'
+            };
+            
+            publicarConConfirmacion("cyber/admin/alerta", alertData, "Alerta enviada al monitor");
+            document.getElementById("alertMessage").value = "";
+        }
+
+        // Gestión de Usuarios
+        function assignUser() {
+            const compId = document.getElementById("userComputerId").value;
+            const userId = document.getElementById("userId").value;
+            const userName = document.getElementById("userName").value;
+            
+            if (!compId) {
+                mostrarNotificacion("⚠️ Selecciona un computador", "warning");
+                return;
+            }
+            
+            if (!userId) {
+                mostrarNotificacion("⚠️ Ingresa un ID de usuario", "warning");
+                return;
+            }
+            
+            const userData = {
+                id: userId,
+                name: userName || userId,
+                assignedAt: new Date().toISOString()
+            };
+            
+            publicarConConfirmacion(`cyber/computador/${compId}/usuario/set`, userData, `Usuario ${userId} asignado a ${compId}`);
+        }
+
+        // Acciones Rápidas
+        function simulateComputerOn() {
+            const compId = getSelectedComputer() || 'PC-01';
+            publicarConConfirmacion(`cyber/computador/${compId}/state/set`, 'on', `Simulación: ${compId} encendido`);
+            
+            setTimeout(() => {
+                const userData = {
+                    id: 'USR-' + Math.floor(Math.random() * 1000),
+                    name: 'Usuario Demo'
+                };
+                publicarConConfirmacion(`cyber/computador/${compId}/usuario/set`, userData, `Usuario asignado`);
+            }, 500);
+        }
+
+        function simulateInternetOn() {
+            const compId = getSelectedComputer() || 'PC-01';
+            publicarConConfirmacion(`cyber/computador/${compId}/internet/set`, 'on', `Simulación: Internet activado en ${compId}`);
+            
+            setTimeout(() => {
+                publicarConConfirmacion(`cyber/computador/${compId}/velocidad/set`, '50 Mbps', `Velocidad establecida`);
+            }, 500);
+        }
+
+        function resetAllTimers() {
+            if (!confirm('¿Estás seguro de reiniciar todos los tiempos de uso?')) {
+                return;
+            }
+            
+            for (let i = 1; i <= 10; i++) {
+                const compId = `PC-${String(i).padStart(2, '0')}`;
+                const tiempoData = {
+                    total: 0,
+                    sesion: 0
+                };
+                publicarConConfirmacion(`cyber/computador/${compId}/tiempo/set`, tiempoData, `Tiempo reiniciado en ${compId}`);
+            }
+        }
+
+        function renderComputersStatus() {
+            const container = document.getElementById('computersStatus');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= 10; i++) {
+                const compId = `PC-${String(i).padStart(2, '0')}`;
+                if (!computersStatus[compId]) {
+                    computersStatus[compId] = { status: 'off', internet: 'off' };
+                }
+                
+                const status = computersStatus[compId];
+                const card = document.createElement('div');
+                card.className = 'computer-card';
+                
+                card.innerHTML = `
+                    <div class="computer-id">💻 ${compId}</div>
+                    <div class="computer-status ${status.status === 'on' ? 'status-on' : 'status-off'}">
+                        ${status.status === 'on' ? 'Encendido' : 'Apagado'}
+                    </div>
+                    <div class="computer-status ${status.internet === 'on' ? 'status-on' : 'status-off'}" style="margin-top: 5px;">
+                        Internet: ${status.internet === 'on' ? 'Activo' : 'Inactivo'}
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            }
+        }
+
+        // Inicializar
+        renderComputersStatus();
+    </script>
+</body>
+</html>
+

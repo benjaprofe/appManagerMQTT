@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Monitoreo de Ciber</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .status.connected {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4caf50;
+        }
+        .status.disconnected {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
+        }
+        .monitors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .monitor-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .monitor-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+        .monitor-card.selected {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+        }
+        .monitor-card.offline {
+            border-color: #666;
+            opacity: 0.6;
+        }
+        .monitor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .monitor-id {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #00ffff;
+        }
+        .monitor-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .status-on {
+            background: #4caf50;
+            color: white;
+        }
+        .status-off {
+            background: #666;
+            color: white;
+        }
+        .status-internet-on {
+            background: #2196F3;
+            color: white;
+        }
+        .status-internet-off {
+            background: #f44336;
+            color: white;
+        }
+        .monitor-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .info-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+        .info-label {
+            opacity: 0.7;
+            font-size: 0.8em;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .detail-panel {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            display: none;
+        }
+        .detail-panel.active {
+            display: block;
+        }
+        .detail-panel h2 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .detail-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #00ffff;
+        }
+        .detail-card h3 {
+            margin-bottom: 10px;
+            color: #00ffff;
+        }
+        .alert-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.5);
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+            display: none;
+            max-width: 400px;
+        }
+        .alert-notification.show {
+            display: block;
+        }
+        .alert-notification h3 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        .alert-notification p {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .logs-container {
+            grid-column: 1 / -1;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .logs-container h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .log-entry {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .log-entry.error {
+            border-left-color: #f44336;
+        }
+        .log-entry.warning {
+            border-left-color: #ff9800;
+        }
+        .log-entry.success {
+            border-left-color: #4caf50;
+        }
+        .log-entry.alert {
+            border-left-color: #ff6b6b;
+        }
+        .timestamp {
+            color: #aaa;
+            font-size: 0.8em;
+        }
+        .time-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em;
+            color: #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💻 Dashboard - Monitoreo de Ciber</h1>
+        <div id="status" class="status disconnected">Desconectado</div>
+        <div id="alertNotification" class="alert-notification">
+            <h3>🚨 Alerta del Administrador</h3>
+            <p id="alertMessage"></p>
+        </div>
+        
+        <div class="monitors-grid" id="monitorsGrid">
+            <!-- Las 10 pantallas se crearán dinámicamente -->
+        </div>
+
+        <!-- Panel de Detalle -->
+        <div class="detail-panel" id="detailPanel">
+            <h2>📊 Información Detallada - <span id="selectedMonitorId">Ninguno</span></h2>
+            <div class="detail-grid">
+                <div class="detail-card">
+                    <h3>🖥️ Estado del Sistema</h3>
+                    <div class="info-item">
+                        <div class="info-label">Estado</div>
+                        <div class="info-value" id="detail-status">--</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Última Actualización</div>
+                        <div class="info-value" id="detail-last-update">--</div>
+                    </div>
+                </div>
+                <div class="detail-card">
+                    <h3>⏱️ Tiempo de Uso</h3>
+                    <div class="info-item">
+                        <div class="info-label">Tiempo Total</div>
+                        <div class="info-value time-display" id="detail-usage-time">00:00:00</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Sesión Actual</div>
+                        <div class="info-value time-display" id="detail-session-time">00:00:00</div>
+                    </div>
+                </div>
+                <div class="detail-card">
+                    <h3>🌐 Internet</h3>
+                    <div class="info-item">
+                        <div class="info-label">Estado</div>
+                        <div class="info-value" id="detail-internet-status">--</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Velocidad</div>
+                        <div class="info-value" id="detail-internet-speed">--</div>
+                    </div>
+                </div>
+                <div class="detail-card">
+                    <h3>👤 Usuario</h3>
+                    <div class="info-item">
+                        <div class="info-label">ID de Usuario</div>
+                        <div class="info-value" id="detail-user-id">--</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Nombre</div>
+                        <div class="info-value" id="detail-user-name">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="logs-container">
+            <h3>📝 Logs de Eventos en Tiempo Real</h3>
+            <div id="logs"></div>
+        </div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_cyber');
+
+        const computers = {};
+        let selectedComputerId = null;
+        const usageTimers = {};
+
+        // Inicializar 10 computadores
+        for (let i = 1; i <= 10; i++) {
+            const compId = `PC-${String(i).padStart(2, '0')}`;
+            computers[compId] = {
+                id: compId,
+                status: 'off',
+                internet: 'off',
+                usageTime: 0,
+                sessionTime: 0,
+                sessionStart: null,
+                userId: null,
+                userName: null,
+                internetSpeed: '0 Mbps',
+                lastUpdate: null
+            };
+        }
+
+        client.on("connect", () => {
+            console.log("Dashboard Cyber conectado!");
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+            
+            const topics = [];
+            for (let i = 1; i <= 10; i++) {
+                const compId = `PC-${String(i).padStart(2, '0')}`;
+                topics.push(
+                    `cyber/computador/${compId}/state`,
+                    `cyber/computador/${compId}/internet`,
+                    `cyber/computador/${compId}/tiempo`,
+                    `cyber/computador/${compId}/usuario`,
+                    `cyber/computador/${compId}/velocidad`
+                );
+            }
+            topics.push('cyber/admin/alerta');
+            
+            topics.forEach((topic, index) => {
+                setTimeout(() => {
+                    client.subscribe(topic, { qos: 1 }, (err, granted) => {
+                        if (err) {
+                            console.error(`❌ Error suscribiéndose a ${topic}:`, err);
+                            addLog(`❌ Error: ${topic}`, "error");
+                        } else {
+                            console.log(`✅ Suscrito a: ${topic}`);
+                            addLog(`✅ Suscrito: ${topic}`, "success");
+                        }
+                    });
+                }, index * 100);
+            });
+            
+            setTimeout(() => {
+                client.subscribe("cyber/#", { qos: 1 }, (err) => {
+                    if (!err) {
+                        console.log("✅ Suscrito a wildcard: cyber/#");
+                        addLog("✅ Wildcard: cyber/#", "success");
+                    }
+                });
+            }, topics.length * 100 + 200);
+            
+            renderMonitors();
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+            addLog("Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            console.log("Cliente desconectado");
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            addLog("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        client.on("reconnect", () => {
+            console.log("Reconectando...");
+            document.getElementById("status").textContent = "🔄 Reconectando...";
+            addLog("🔄 Intentando reconectar...", "warning");
+        });
+
+        client.on("message", (topic, message) => {
+            const msg = message.toString();
+            console.log(`📨 Mensaje recibido: ${topic} = ${msg}`);
+            
+            try {
+                if (topic === 'cyber/admin/alerta') {
+                    handleAdminAlert(msg);
+                } else {
+                    updateComputer(topic, msg);
+                }
+                addLog(`${topic}: ${msg}`, "info");
+            } catch (error) {
+                console.error(`❌ Error procesando mensaje:`, error);
+                addLog(`❌ Error: ${error.message}`, "error");
+            }
+        });
+
+        function updateComputer(topic, value) {
+            const parts = topic.split('/');
+            const compId = parts[2];
+            
+            if (!computers[compId]) {
+                console.error(`Computador ${compId} no encontrado`);
+                return;
+            }
+            
+            const computer = computers[compId];
+            computer.lastUpdate = new Date();
+            
+            if (topic.includes('/state')) {
+                const wasOn = computer.status === 'on';
+                computer.status = value.toLowerCase().trim();
+                
+                if (computer.status === 'on' && !wasOn) {
+                    // Computador encendido - iniciar sesión
+                    computer.sessionStart = new Date();
+                    startUsageTimer(compId);
+                } else if (computer.status === 'off' && wasOn) {
+                    // Computador apagado - detener sesión
+                    stopUsageTimer(compId);
+                }
+            } else if (topic.includes('/internet')) {
+                computer.internet = value.toLowerCase().trim();
+            } else if (topic.includes('/tiempo')) {
+                try {
+                    const tiempo = JSON.parse(value);
+                    computer.usageTime = tiempo.total || computer.usageTime;
+                    computer.sessionTime = tiempo.sesion || computer.sessionTime;
+                } catch (e) {
+                    computer.usageTime = parseFloat(value) || computer.usageTime;
+                }
+            } else if (topic.includes('/usuario')) {
+                try {
+                    const usuario = JSON.parse(value);
+                    computer.userId = usuario.id || null;
+                    computer.userName = usuario.name || null;
+                } catch (e) {
+                    computer.userId = value || null;
+                    computer.userName = value || null;
+                }
+            } else if (topic.includes('/velocidad')) {
+                computer.internetSpeed = value;
+            }
+            
+            renderMonitors();
+            if (selectedComputerId === compId) {
+                updateDetailPanel(compId);
+            }
+        }
+
+        function handleAdminAlert(message) {
+            try {
+                const alert = JSON.parse(message);
+                showAlert(alert.message || alert.text || message, alert.type || 'info');
+            } catch (e) {
+                showAlert(message, 'info');
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const notification = document.getElementById('alertNotification');
+            const messageEl = document.getElementById('alertMessage');
+            
+            messageEl.textContent = message;
+            notification.classList.add('show');
+            addLog(`🚨 Alerta: ${message}`, "alert");
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        function startUsageTimer(compId) {
+            if (usageTimers[compId]) {
+                clearInterval(usageTimers[compId]);
+            }
+            
+            usageTimers[compId] = setInterval(() => {
+                if (computers[compId] && computers[compId].status === 'on') {
+                    computers[compId].usageTime += 1;
+                    if (computers[compId].sessionStart) {
+                        const sessionSeconds = Math.floor((new Date() - computers[compId].sessionStart) / 1000);
+                        computers[compId].sessionTime = sessionSeconds;
+                    }
+                    renderMonitors();
+                    if (selectedComputerId === compId) {
+                        updateDetailPanel(compId);
+                    }
+                }
+            }, 1000);
+        }
+
+        function stopUsageTimer(compId) {
+            if (usageTimers[compId]) {
+                clearInterval(usageTimers[compId]);
+                delete usageTimers[compId];
+            }
+        }
+
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function renderMonitors() {
+            const grid = document.getElementById('monitorsGrid');
+            grid.innerHTML = '';
+            
+            Object.values(computers).forEach(computer => {
+                const card = document.createElement('div');
+                card.className = `monitor-card ${computer.status === 'off' ? 'offline' : ''} ${selectedComputerId === computer.id ? 'selected' : ''}`;
+                card.onclick = () => selectMonitor(computer.id);
+                
+                const statusClass = computer.status === 'on' ? 'status-on' : 'status-off';
+                const internetClass = computer.internet === 'on' ? 'status-internet-on' : 'status-internet-off';
+                
+                card.innerHTML = `
+                    <div class="monitor-header">
+                        <span class="monitor-id">💻 ${computer.id}</span>
+                        <span class="monitor-status ${statusClass}">${computer.status === 'on' ? 'Encendido' : 'Apagado'}</span>
+                    </div>
+                    <div class="monitor-info">
+                        <div class="info-item">
+                            <div class="info-label">🌐 Internet</div>
+                            <div class="info-value">
+                                <span class="monitor-status ${internetClass}" style="display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 0.8em;">
+                                    ${computer.internet === 'on' ? 'Activo' : 'Inactivo'}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">⏱️ Tiempo de Uso</div>
+                            <div class="info-value time-display">${formatTime(computer.usageTime)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">👤 Usuario</div>
+                            <div class="info-value">${computer.userName || computer.userId || 'Sin usuario'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">⚡ Velocidad</div>
+                            <div class="info-value">${computer.internetSpeed}</div>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function selectMonitor(compId) {
+            selectedComputerId = compId;
+            renderMonitors();
+            updateDetailPanel(compId);
+            
+            const detailPanel = document.getElementById('detailPanel');
+            detailPanel.classList.add('active');
+            
+            addLog(`📌 Computador ${compId} seleccionado`, "info");
+        }
+
+        function updateDetailPanel(compId) {
+            const computer = computers[compId];
+            if (!computer) return;
+            
+            document.getElementById('selectedMonitorId').textContent = compId;
+            document.getElementById('detail-status').textContent = computer.status === 'on' ? 'Encendido' : 'Apagado';
+            document.getElementById('detail-last-update').textContent = computer.lastUpdate 
+                ? computer.lastUpdate.toLocaleTimeString() 
+                : 'Nunca';
+            document.getElementById('detail-usage-time').textContent = formatTime(computer.usageTime);
+            document.getElementById('detail-session-time').textContent = formatTime(computer.sessionTime);
+            document.getElementById('detail-internet-status').textContent = computer.internet === 'on' ? 'Activo' : 'Inactivo';
+            document.getElementById('detail-internet-speed').textContent = computer.internetSpeed;
+            document.getElementById('detail-user-id').textContent = computer.userId || '--';
+            document.getElementById('detail-user-name').textContent = computer.userName || '--';
+        }
+
+        function addLog(message, type = 'info') {
+            const logsContainer = document.getElementById("logs");
+            const logEntry = document.createElement("div");
+            logEntry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+            
+            while (logsContainer.children.length > 50) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+
+        // Renderizar inicialmente
+        renderMonitors();
+    </script>
+</body>
+</html>
+

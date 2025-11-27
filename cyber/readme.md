@@ -9,3 +9,4 @@ acceso y desactivacion de internet.
 
 notificacion de alerta desde administrado envia una informacion y la recibe monitor.
 
+Motiteoa 10 pantallas y cada una despues selecionar para recibir la informacion.
