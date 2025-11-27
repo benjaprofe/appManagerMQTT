@@ -48,6 +48,18 @@ const mqttConfig = {
       connectTimeout: 4000,
       reconnectPeriod: 1000
     }
+  },
+  
+  // Cliente para el proyecto Arismendi Station (Estación de Metro Santiago)
+  client_arismendi: {
+    url: "wss://ea85403b34ed493fb528ace645709065.s1.eu.hivemq.cloud:8884/mqtt",
+    username: "hivemq.webclient.1764265045956",
+    password: "G6j53rvn$*xA8OS:gL#M",
+    options: {
+      clean: true,
+      connectTimeout: 4000,
+      reconnectPeriod: 1000
+    }
   }
   
   // Puedes agregar más clientes aquí:
@@ -83,3 +95,4 @@ const client_hogar = createMqttClient('client_hogar');
 const client_tren = createMqttClient('client_tren');
 const client_delivery = createMqttClient('client_delivery');
 const client_ionu = createMqttClient('client_ionu');
+const client_arismendi = createMqttClient('client_arismendi');

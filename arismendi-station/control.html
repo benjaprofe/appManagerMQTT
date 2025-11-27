@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Estación Arismendi</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .status.connected {
+            background: #4caf50;
+            color: white;
+        }
+        .status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border-left: 5px solid #3949ab;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            width: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-primary {
+            background: #3949ab;
+        }
+        .btn-primary:hover {
+            background: #1a237e;
+        }
+        .btn-success {
+            background: #4caf50;
+        }
+        .btn-success:hover {
+            background: #45a049;
+        }
+        .btn-danger {
+            background: #f44336;
+        }
+        .btn-danger:hover {
+            background: #da190b;
+        }
+        .btn-warning {
+            background: #ff9800;
+        }
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+        .btn-emergency {
+            background: #d32f2f;
+            animation: pulse 2s infinite;
+        }
+        .btn-emergency:hover {
+            background: #b71c1c;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+        .notification.show {
+            display: block;
+        }
+        .notification.error {
+            background: #f44336;
+        }
+        .notification.warning {
+            background: #ff9800;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .pin-input {
+            font-size: 24px;
+            letter-spacing: 10px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+        }
+        .security-panel {
+            background: rgba(244, 67, 54, 0.1);
+            border: 2px solid #f44336;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚇 Panel de Control - Estación Arismendi</h1>
+        <div id="status" class="status disconnected">Desconectado</div>
+        <div id="notification" class="notification"></div>
+        
+        <!-- Gestión de Vehículos -->
+        <div class="section">
+            <h2>🚗 Gestión de Vehículos</h2>
+            <div class="controls-grid">
+                <div class="form-group">
+                    <label for="vehicleId">ID del Vehículo</label>
+                    <input type="text" id="vehicleId" placeholder="Ej: VEH-001">
+                </div>
+                <div class="form-group">
+                    <label for="vehicleStatus">Estado del Vehículo</label>
+                    <select id="vehicleStatus">
+                        <option value="available">Disponible</option>
+                        <option value="parked">Estacionado</option>
+                        <option value="in-use">En Uso</option>
+                        <option value="maintenance">Mantenimiento</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="updateVehicleStatus()">🔄 Actualizar Estado</button>
+        </div>
+
+        <!-- Estacionamiento -->
+        <div class="section">
+            <h2>🅿️ Control de Estacionamiento</h2>
+            <div class="controls-grid">
+                <div class="form-group">
+                    <label for="entryVehicleId">ID del Vehículo</label>
+                    <input type="text" id="entryVehicleId" placeholder="Ej: VEH-001">
+                </div>
+                <div class="form-group">
+                    <label for="entryType">Tipo de Operación</label>
+                    <select id="entryType">
+                        <option value="entrada">Entrada</option>
+                        <option value="salida">Salida</option>
+                        <option value="entrega">Entrega a Cliente</option>
+                    </select>
+                </div>
+            </div>
+            <div class="controls-grid">
+                <button class="btn btn-success" onclick="registerEntry()">✅ Registrar Entrada</button>
+                <button class="btn btn-warning" onclick="registerExit()">🚪 Registrar Salida</button>
+                <button class="btn btn-primary" onclick="deliverToClient()">📦 Entregar a Cliente</button>
+            </div>
+        </div>
+
+        <!-- Asignación de Conductor -->
+        <div class="section">
+            <h2>👤 Asignación de Conductor</h2>
+            <div class="controls-grid">
+                <div class="form-group">
+                    <label for="assignVehicleId">ID del Vehículo</label>
+                    <input type="text" id="assignVehicleId" placeholder="Ej: VEH-001">
+                </div>
+                <div class="form-group">
+                    <label for="driverId">ID del Conductor</label>
+                    <input type="text" id="driverId" placeholder="Ej: CON-001">
+                </div>
+                <div class="form-group">
+                    <label for="driverName">Nombre del Conductor</label>
+                    <input type="text" id="driverName" placeholder="Ej: Juan Pérez">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="assignDriver()">👤 Asignar Conductor</button>
+        </div>
+
+        <!-- Control de Seguridad -->
+        <div class="section">
+            <h2>🔒 Control de Seguridad</h2>
+            <div class="security-panel">
+                <h3 style="color: #f44336; margin-bottom: 15px;">⚠️ Funciones de Seguridad Crítica</h3>
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label for="securityVehicleId">ID del Vehículo</label>
+                        <input type="text" id="securityVehicleId" placeholder="Ej: VEH-001">
+                    </div>
+                    <div class="form-group">
+                        <label for="securityPin">PIN de Seguridad</label>
+                        <input type="password" id="securityPin" class="pin-input" placeholder="0000" maxlength="4">
+                    </div>
+                </div>
+                <div class="controls-grid">
+                    <button class="btn btn-danger" onclick="immobilizeEngine()">🔒 Inmovilizar Motor</button>
+                    <button class="btn btn-emergency" onclick="activateTheftAlarm()">🚨 Activar Alarma por Robo</button>
+                    <button class="btn btn-warning" onclick="activateHornFlash()">🔊 Bocina + Parpadeo</button>
+                    <button class="btn btn-primary" onclick="setPinRequired()">🔐 Activar PIN Requerido</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones del Sistema -->
+        <div class="section">
+            <h2>⚙️ Acciones del Sistema</h2>
+            <div class="controls-grid">
+                <div class="form-group">
+                    <label for="actionVehicleId">ID del Vehículo</label>
+                    <input type="text" id="actionVehicleId" placeholder="Ej: VEH-001">
+                </div>
+                <div class="form-group">
+                    <label for="actionType">Tipo de Acción</label>
+                    <select id="actionType">
+                        <option value="antirrobo">Antirrobo</option>
+                        <option value="alarma">Alarma</option>
+                        <option value="alerta">Alerta</option>
+                        <option value="emergencia">Emergencia</option>
+                        <option value="seguridad">Seguridad</option>
+                        <option value="control">Control</option>
+                        <option value="monitoreo">Monitoreo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="controls-grid">
+                <button class="btn btn-success" onclick="activateAction()">✅ Activar Acción</button>
+                <button class="btn btn-danger" onclick="deactivateAction()">❌ Desactivar Acción</button>
+            </div>
+        </div>
+
+        <!-- Simulación de Datos -->
+        <div class="section">
+            <h2>🎮 Simulación de Datos</h2>
+            <div class="controls-grid">
+                <button class="btn btn-primary" onclick="createSampleVehicle()">🚗 Crear Vehículo de Ejemplo</button>
+                <button class="btn btn-success" onclick="simulateVehicleData()">📊 Simular Datos del Vehículo</button>
+                <button class="btn btn-warning" onclick="simulateParking()">🅿️ Simular Estacionamiento</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_arismendi');
+
+        client.on("connect", () => {
+            console.log("Panel de Control Arismendi conectado!");
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+            mostrarNotificacion("✅ Conectado a MQTT", "success");
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("❌ Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("⚠️ Desconectado de MQTT", "error");
+        });
+
+        client.on("reconnect", () => {
+            document.getElementById("status").textContent = "🔄 Reconectando...";
+            mostrarNotificacion("🔄 Intentando reconectar...", "warning");
+        });
+
+        function mostrarNotificacion(mensaje, tipo = "success") {
+            const notification = document.getElementById("notification");
+            notification.textContent = mensaje;
+            notification.className = `notification show ${tipo}`;
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        function publicarConConfirmacion(topic, data, descripcion) {
+            if (!client.connected) {
+                mostrarNotificacion("❌ No conectado a MQTT", "error");
+                return;
+            }
+            
+            const message = typeof data === 'string' ? data : JSON.stringify(data);
+            
+            client.publish(topic, message, { qos: 1 }, (err) => {
+                if (err) {
+                    console.error(`Error publicando ${topic}:`, err);
+                    mostrarNotificacion(`❌ Error: ${descripcion}`, "error");
+                } else {
+                    console.log(`✅ Publicado: ${topic} = ${message}`);
+                    mostrarNotificacion(`✅ ${descripcion}`, "success");
+                }
+            });
+        }
+
+        function getVehicleId(inputId) {
+            const vehicleId = document.getElementById(inputId).value;
+            if (!vehicleId) {
+                mostrarNotificacion("⚠️ Ingresa un ID de vehículo", "warning");
+                return null;
+            }
+            return vehicleId;
+        }
+
+        // Gestión de Vehículos
+        function updateVehicleStatus() {
+            const vehicleId = getVehicleId('vehicleId');
+            if (!vehicleId) return;
+            
+            const status = document.getElementById("vehicleStatus").value;
+            publicarConConfirmacion(`arismendi/vehiculo/${vehicleId}/state/set`, status, `Estado de ${vehicleId} actualizado a ${status}`);
+        }
+
+        // Estacionamiento
+        function registerEntry() {
+            const vehicleId = getVehicleId('entryVehicleId');
+            if (!vehicleId) return;
+            
+            const data = {
+                vehicleId: vehicleId,
+                type: 'entrada',
+                timestamp: new Date().toISOString()
+            };
+            publicarConConfirmacion("arismendi/estacionamiento/entrada/set", data, `Entrada de ${vehicleId} registrada`);
+        }
+
+        function registerExit() {
+            const vehicleId = getVehicleId('entryVehicleId');
+            if (!vehicleId) return;
+            
+            const data = {
+                vehicleId: vehicleId,
+                type: 'salida',
+                timestamp: new Date().toISOString()
+            };
+            publicarConConfirmacion("arismendi/estacionamiento/salida/set", data, `Salida de ${vehicleId} registrada`);
+        }
+
+        function deliverToClient() {
+            const vehicleId = getVehicleId('entryVehicleId');
+            if (!vehicleId) return;
+            
+            const data = {
+                vehicleId: vehicleId,
+                type: 'entrega',
+                timestamp: new Date().toISOString()
+            };
+            publicarConConfirmacion("arismendi/estacionamiento/entrega/set", data, `Entrega de ${vehicleId} a cliente registrada`);
+        }
+
+        // Asignación de Conductor
+        function assignDriver() {
+            const vehicleId = getVehicleId('assignVehicleId');
+            if (!vehicleId) return;
+            
+            const driverId = document.getElementById("driverId").value;
+            const driverName = document.getElementById("driverName").value;
+            
+            if (!driverId) {
+                mostrarNotificacion("⚠️ Ingresa un ID de conductor", "warning");
+                return;
+            }
+            
+            const data = {
+                id: driverId,
+                name: driverName || 'Conductor',
+                status: 'asignado',
+                assignedAt: new Date().toISOString()
+            };
+            
+            publicarConConfirmacion(`arismendi/vehiculo/${vehicleId}/conductor/set`, data, `Conductor ${driverId} asignado a ${vehicleId}`);
+        }
+
+        // Control de Seguridad
+        function immobilizeEngine() {
+            const vehicleId = getVehicleId('securityVehicleId');
+            if (!vehicleId) return;
+            
+            const pin = document.getElementById("securityPin").value;
+            if (!pin || pin.length !== 4) {
+                mostrarNotificacion("⚠️ Ingresa un PIN de 4 dígitos", "warning");
+                return;
+            }
+            
+            const data = {
+                action: 'immobilize',
+                pin: pin,
+                timestamp: new Date().toISOString()
+            };
+            
+            publicarConConfirmacion(`arismendi/vehiculo/${vehicleId}/seguridad/immobilize`, data, `Motor de ${vehicleId} inmovilizado`);
+        }
+
+        function activateTheftAlarm() {
+            const vehicleId = getVehicleId('securityVehicleId');
+            if (!vehicleId) return;
+            
+            const pin = document.getElementById("securityPin").value;
+            if (!pin || pin.length !== 4) {
+                mostrarNotificacion("⚠️ Ingresa un PIN de 4 dígitos", "warning");
+                return;
+            }
+            
+            const data = {
+                action: 'theft_alarm',
+                pin: pin,
+                sirens: true,
+                timestamp: new Date().toISOString()
+            };
+            
+            publicarConConfirmacion(`arismendi/vehiculo/${vehicleId}/alarma/robo/set`, data, `Alarma por robo activada en ${vehicleId}`);
+        }
+
+        function activateHornFlash() {
+            const vehicleId = getVehicleId('securityVehicleId');
+            if (!vehicleId) return;
+            
+            const data = {
+                action: 'horn_flash',
+                horn: true,
+                flash: true,
+                duration: 30,
+                timestamp: new Date().toISOString()
+            };
+            
+            publicarConConfirmacion(`arismendi/vehiculo/${vehicleId}/seguridad/horn_flash`, data, `Bocina y parpadeo activados en ${vehicleId}`);
+        }
+
+        function setPinRequired() {
+            const vehicleId = getVehicleId('securityVehicleId');
+            if (!vehicleId) return;
+            
+            const pin = document.getElementById("securityPin").value;
+            if (!pin || pin.length !== 4) {
+                mostrarNotificacion("⚠️ Ingresa un PIN de 4 dígitos", "warning");
+                return;
+            }
+            
+            const data = {
+                action: 'pin_required',
+                pin: pin,
+                enabled: true,
+                timestamp: new Date().toISOString()
+            };
+            
+            publicarConConfirmacion(`arismendi/vehiculo/${vehicleId}/seguridad/pin_required/set`, data, `PIN requerido activado para ${vehicleId}`);
+        }
+
+        // Acciones del Sistema
+        function activateAction() {
+            const vehicleId = getVehicleId('actionVehicleId');
+            if (!vehicleId) return;
+            
+            const actionType = document.getElementById("actionType").value;
+            publicarConConfirmacion(`arismendi/vehiculo/${vehicleId}/${actionType}/set`, 'on', `${actionType} activado para ${vehicleId}`);
+        }
+
+        function deactivateAction() {
+            const vehicleId = getVehicleId('actionVehicleId');
+            if (!vehicleId) return;
+            
+            const actionType = document.getElementById("actionType").value;
+            publicarConConfirmacion(`arismendi/vehiculo/${vehicleId}/${actionType}/set`, 'off', `${actionType} desactivado para ${vehicleId}`);
+        }
+
+        // Simulación
+        function createSampleVehicle() {
+            const vehicleId = 'VEH-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+            const statuses = ['available', 'parked', 'in-use'];
+            const status = statuses[Math.floor(Math.random() * statuses.length)];
+            
+            publicarConConfirmacion(`arismendi/vehiculo/${vehicleId}/state/set`, status, `Vehículo de ejemplo ${vehicleId} creado`);
+            
+            // Asignar conductor de ejemplo
+            setTimeout(() => {
+                const driverData = {
+                    id: 'CON-' + String(Math.floor(Math.random() * 100)).padStart(3, '0'),
+                    name: 'Conductor Ejemplo',
+                    status: 'asignado'
+                };
+                publicarConConfirmacion(`arismendi/vehiculo/${vehicleId}/conductor/set`, driverData, `Conductor asignado`);
+            }, 500);
+        }
+
+        function simulateVehicleData() {
+            const vehicleId = prompt('Ingresa el ID del vehículo (ej: VEH-001):');
+            if (!vehicleId) return;
+            
+            const sensors = {
+                bateria: Math.floor(Math.random() * 40) + 60,
+                velocidad: Math.floor(Math.random() * 80),
+                temperatura: Math.floor(Math.random() * 30) + 20,
+                humedad: Math.floor(Math.random() * 30) + 40,
+                neumaticos_presion: Math.floor(Math.random() * 10) + 30,
+                combustible: Math.floor(Math.random() * 50) + 30,
+                agua: Math.floor(Math.random() * 30) + 50,
+                aceite: Math.floor(Math.random() * 30) + 50,
+                refrigerante: Math.floor(Math.random() * 30) + 50,
+                ac: Math.floor(Math.random() * 30) + 50
+            };
+            
+            Object.entries(sensors).forEach(([sensor, value]) => {
+                const topic = sensor === 'neumaticos_presion' 
+                    ? `arismendi/vehiculo/${vehicleId}/neumaticos/presion`
+                    : `arismendi/vehiculo/${vehicleId}/${sensor}`;
+                publicarConConfirmacion(topic, value.toString(), `${sensor}: ${value}`);
+            });
+            
+            // Simular GPS
+            const gpsData = {
+                lat: (-33.4489 + (Math.random() * 0.1)).toFixed(6),
+                lon: (-70.6693 + (Math.random() * 0.1)).toFixed(6),
+                address: 'Santiago, Chile',
+                speed: sensors.velocidad
+            };
+            publicarConConfirmacion(`arismendi/vehiculo/${vehicleId}/gps`, gpsData, `GPS actualizado`);
+        }
+
+        function simulateParking() {
+            const vehicleId = prompt('Ingresa el ID del vehículo (ej: VEH-001):');
+            if (!vehicleId) return;
+            
+            const operations = ['entrada', 'salida', 'entrega'];
+            const operation = operations[Math.floor(Math.random() * operations.length)];
+            
+            const data = {
+                vehicleId: vehicleId,
+                type: operation,
+                timestamp: new Date().toISOString()
+            };
+            
+            const topic = operation === 'entrega' 
+                ? 'arismendi/estacionamiento/entrega/set'
+                : `arismendi/estacionamiento/${operation}/set`;
+            
+            publicarConConfirmacion(topic, data, `Operación ${operation} simulada para ${vehicleId}`);
+        }
+    </script>
+</body>
+</html>
+
