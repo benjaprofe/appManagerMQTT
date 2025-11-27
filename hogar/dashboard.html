@@ -298,14 +298,9 @@
         </div>
     </div>
 
+    <script src="../env/credential.js"></script>
     <script>
-        const client = mqtt.connect("wss://5fa060c50718458c97c7e3bd622628cd.s1.eu.hivemq.cloud:8884/mqtt", {
-            username: "bemtorres",
-            password: "Erensam18",
-            clean: true,
-            connectTimeout: 4000,
-            reconnectPeriod: 1000
-        });
+        const client = createMqttClient('client_hogar');
 
         const estados = {
             'living-luz': 'off',

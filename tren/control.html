@@ -143,12 +143,39 @@
             font-size: 16px;
             margin-top: 10px;
         }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+        .notification.show {
+            display: block;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🚇 Panel de Control - Metro Inteligente</h1>
         <div id="status" class="status disconnected">Desconectado</div>
+        <div id="notification" class="notification"></div>
         
         <!-- Control del Tren -->
         <div class="section">
@@ -196,51 +223,87 @@
         </div>
     </div>
 
+    <script src="../env/credential.js"></script>
     <script>
-        const client = mqtt.connect("wss://17d7cec571094065932bc3866aa1ee98.s1.eu.hivemq.cloud:8884/mqtt", {
-            username: "bemtorres",
-            password: "Erensam18",
-            clean: true,
-            connectTimeout: 4000,
-            reconnectPeriod: 1000
-        });
+        const client = createMqttClient('client_tren');
 
         client.on("connect", () => {
             console.log("Panel de Control del Metro conectado!");
             document.getElementById("status").textContent = "✅ Conectado";
             document.getElementById("status").className = "status connected";
+            mostrarNotificacion("✅ Conectado a MQTT", "success");
         });
 
         client.on("error", (error) => {
             console.error("Error:", error);
             document.getElementById("status").textContent = "❌ Error de conexión";
             document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("❌ Error de conexión: " + error, "error");
         });
+
+        client.on("offline", () => {
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            mostrarNotificacion("⚠️ Desconectado de MQTT", "error");
+        });
+
+        client.on("reconnect", () => {
+            document.getElementById("status").textContent = "🔄 Reconectando...";
+            mostrarNotificacion("🔄 Intentando reconectar...", "warning");
+        });
+
+        function mostrarNotificacion(mensaje, tipo = "success") {
+            const notification = document.getElementById("notification");
+            notification.textContent = mensaje;
+            notification.className = "notification show";
+            if (tipo === "error") {
+                notification.style.background = "#f44336";
+            } else if (tipo === "warning") {
+                notification.style.background = "#ff9800";
+            } else {
+                notification.style.background = "#4caf50";
+            }
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        function publicarConConfirmacion(topic, value, descripcion) {
+            if (!client.connected) {
+                mostrarNotificacion("❌ No conectado a MQTT", "error");
+                return;
+            }
+            
+            client.publish(topic, value, { qos: 1 }, (err) => {
+                if (err) {
+                    console.error(`Error publicando ${topic}:`, err);
+                    mostrarNotificacion(`❌ Error: ${descripcion}`, "error");
+                } else {
+                    console.log(`✅ Publicado: ${topic} = ${value}`);
+                    mostrarNotificacion(`✅ ${descripcion}`, "success");
+                }
+            });
+        }
 
         // Control del Tren
         function iniciarRecorrido() {
-            client.publish("metro/tren1/velocidad/set", "40");
-            console.log("Publicado: metro/tren1/velocidad/set = 40");
+            publicarConConfirmacion("metro/tren1/velocidad/set", "40", "Iniciando recorrido");
         }
 
         function detenerTren() {
-            client.publish("metro/tren1/velocidad/set", "0");
-            console.log("Publicado: metro/tren1/velocidad/set = 0");
+            publicarConConfirmacion("metro/tren1/velocidad/set", "0", "Deteniendo tren");
         }
 
         function abrirPuertas() {
-            client.publish("metro/tren1/puertas/set", "open");
-            console.log("Publicado: metro/tren1/puertas/set = open");
+            publicarConConfirmacion("metro/tren1/puertas/set", "open", "Abriendo puertas");
         }
 
         function cerrarPuertas() {
-            client.publish("metro/tren1/puertas/set", "close");
-            console.log("Publicado: metro/tren1/puertas/set = close");
+            publicarConConfirmacion("metro/tren1/puertas/set", "close", "Cerrando puertas");
         }
 
         function frenoEmergencia() {
-            client.publish("metro/tren1/freno_emergencia/set", "on");
-            console.log("Publicado: metro/tren1/freno_emergencia/set = on");
+            publicarConConfirmacion("metro/tren1/freno_emergencia/set", "on", "Activando freno de emergencia");
         }
 
         function updateVelocidad(value) {
@@ -249,43 +312,44 @@
 
         function setVelocidad() {
             const velocidad = document.getElementById("velocidadSlider").value;
-            client.publish("metro/tren1/velocidad/set", velocidad);
-            console.log(`Publicado: metro/tren1/velocidad/set = ${velocidad}`);
+            publicarConConfirmacion("metro/tren1/velocidad/set", velocidad, `Velocidad establecida a ${velocidad} km/h`);
         }
 
         // Control de Estación
         function controlLuces(state) {
-            client.publish("metro/estacion1/luces/set", state);
-            console.log(`Publicado: metro/estacion1/luces/set = ${state}`);
+            const accion = state === 'on' ? 'Encendiendo luces' : 'Apagando luces';
+            publicarConConfirmacion("metro/estacion1/luces/set", state, accion);
         }
 
         function anunciarLlegada() {
-            client.publish("metro/estacion1/anuncio/set", "llegada");
-            console.log("Publicado: metro/estacion1/anuncio/set = llegada");
+            publicarConConfirmacion("metro/estacion1/anuncio/set", "llegada", "Anunciando llegada");
         }
 
         function evacuacion() {
-            client.publish("metro/estacion1/evacuacion/set", "start");
-            console.log("Publicado: metro/estacion1/evacuacion/set = start");
+            publicarConConfirmacion("metro/estacion1/evacuacion/set", "start", "Iniciando evacuación");
         }
 
         function alarmaIncendio() {
-            client.publish("metro/estacion1/alarma/set", "incendio");
-            console.log("Publicado: metro/estacion1/alarma/set = incendio");
+            publicarConConfirmacion("metro/estacion1/alarma/set", "incendio", "Activando alarma de incendio");
         }
 
         function altaCongestion() {
-            client.publish("metro/estacion1/congestion/set", "alta");
-            console.log("Publicado: metro/estacion1/congestion/set = alta");
+            publicarConConfirmacion("metro/estacion1/congestion/set", "alta", "Alerta: Alta congestión");
         }
 
         // Operaciones del Sistema
         function cambiarModo() {
             const modo = document.getElementById("modoSistema").value;
             if (modo) {
-                client.publish("metro/sistema/modo/set", modo);
-                console.log(`Publicado: metro/sistema/modo/set = ${modo}`);
+                const modoText = {
+                    'hora_punta': 'Hora Punta',
+                    'baja_demanda': 'Baja Demanda',
+                    'normal': 'Normal'
+                };
+                publicarConConfirmacion("metro/sistema/modo/set", modo, `Modo cambiado a: ${modoText[modo] || modo}`);
                 document.getElementById("modoSistema").value = "";
+            } else {
+                mostrarNotificacion("⚠️ Selecciona un modo primero", "error");
             }
         }
     </script>

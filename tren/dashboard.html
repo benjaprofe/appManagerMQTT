@@ -198,6 +198,9 @@
             font-family: 'Courier New', monospace;
             font-size: 0.9em;
         }
+        .log-entry.success {
+            border-left-color: #4caf50;
+        }
         .log-entry.error {
             border-left-color: #f44336;
         }
@@ -301,14 +304,9 @@
         </div>
     </div>
 
+    <script src="../env/credential.js"></script>
     <script>
-        const client = mqtt.connect("wss://17d7cec571094065932bc3866aa1ee98.s1.eu.hivemq.cloud:8884/mqtt", {
-            username: "bemtorres",
-            password: "Erensam18",
-            clean: true,
-            connectTimeout: 4000,
-            reconnectPeriod: 1000
-        });
+        const client = createMqttClient('client_tren');
 
         const estados = {
             velocidad: 0,
@@ -346,11 +344,31 @@
                 "metro/sistema/modo"
             ];
             
-            topics.forEach(topic => {
-                client.subscribe(topic);
+            topics.forEach((topic, index) => {
+                setTimeout(() => {
+                    client.subscribe(topic, { qos: 1 }, (err, granted) => {
+                        if (err) {
+                            console.error(`❌ Error suscribiéndose a ${topic}:`, err);
+                            addLog(`❌ Error: ${topic} - ${err.message}`, "error");
+                        } else {
+                            console.log(`✅ Suscrito a: ${topic}`, granted);
+                            addLog(`✅ Suscrito: ${topic}`, "success");
+                        }
+                    });
+                }, index * 100); // Espaciar suscripciones 100ms
             });
             
-            addLog("Sistema conectado y suscrito a todos los sensores", "success");
+            // También suscribirse usando wildcard para capturar todos los mensajes
+            setTimeout(() => {
+                client.subscribe("metro/#", { qos: 1 }, (err) => {
+                    if (!err) {
+                        console.log("✅ Suscrito a wildcard: metro/#");
+                        addLog("✅ Wildcard: metro/#", "success");
+                    } else {
+                        console.error("❌ Error wildcard:", err);
+                    }
+                });
+            }, topics.length * 100 + 200);
         });
 
         client.on("error", (error) => {
@@ -358,6 +376,19 @@
             document.getElementById("status").textContent = "❌ Error de conexión";
             document.getElementById("status").className = "status disconnected";
             addLog("Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            console.log("Cliente desconectado");
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            addLog("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        client.on("reconnect", () => {
+            console.log("Reconectando...");
+            document.getElementById("status").textContent = "🔄 Reconectando...";
+            addLog("🔄 Intentando reconectar...", "warning");
         });
 
         client.on("message", (topic, message) => {
