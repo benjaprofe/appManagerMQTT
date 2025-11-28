@@ -4,650 +4,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Acevedo Casino</title>
+    <title>Acevedo Casino | Minimal Dashboard</title>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --bg-dark: #050505;
-            --bg-panel: #121212;
-            --primary-gold: #d4af37;
-            --primary-gold-dim: #aa8c2c;
-            --accent-blue: #2196f3;
-            --accent-red: #ff4444;
-            --accent-green: #00c851;
-            --text-main: #ffffff;
-            --text-muted: #888888;
-            --glass-bg: rgba(20, 20, 20, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --font-main: 'Outfit', sans-serif;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
         body {
-            font-family: var(--font-main);
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            background-image: radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 20%);
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
         }
 
-        .container {
-            max-width: 1800px;
-            margin: 0 auto;
+        .card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        h1 {
-            font-size: 2.5em;
-            color: var(--primary-gold);
-            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-            margin-bottom: 10px;
-        }
-
-        .status {
+        .status-dot {
+            height: 8px;
+            width: 8px;
+            border-radius: 50%;
             display: inline-block;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: 600;
-            margin-top: 10px;
         }
 
-        .status.connected {
-            background: rgba(0, 200, 81, 0.2);
-            border: 2px solid var(--accent-green);
-            color: var(--accent-green);
+        .status-active {
+            background-color: #10b981;
+            box-shadow: 0 0 8px #10b981;
         }
 
-        .status.disconnected {
-            background: rgba(255, 68, 68, 0.2);
-            border: 2px solid var(--accent-red);
-            color: var(--accent-red);
-            animation: pulse 2s infinite;
+        .status-inactive {
+            background-color: #ef4444;
         }
 
-        .dashboard-grid {
+        .grid-map {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 4px;
         }
 
-        .stat-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .icon-box {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .icon-box.gold {
-            background: rgba(212, 175, 55, 0.1);
-            color: var(--primary-gold);
-        }
-
-        .icon-box.blue {
-            background: rgba(33, 150, 243, 0.1);
-            color: var(--accent-blue);
-        }
-
-        .icon-box.green {
-            background: rgba(0, 200, 81, 0.1);
-            color: var(--accent-green);
-        }
-
-        .icon-box.red {
-            background: rgba(255, 68, 68, 0.1);
-            color: var(--accent-red);
-        }
-
-        .stat-info h3 {
-            font-size: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            margin: 5px 0;
-        }
-
-        .main-panels {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
-        }
-
-        .panel h2 {
-            margin-bottom: 20px;
-            font-size: 1.5em;
-            color: var(--primary-gold);
-        }
-
-        #casino-map {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 10px;
-            min-height: 400px;
-        }
-
-        .map-item {
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            cursor: pointer;
+        .map-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            background: #334155;
             transition: all 0.3s;
-            padding: 5px;
-            text-align: center;
         }
 
-        .map-item:hover {
-            transform: scale(1.1);
-            z-index: 10;
+        .map-cell.active {
+            background: #10b981;
         }
 
-        .map-item.mesa {
-            background: rgba(0, 200, 81, 0.2);
-            border: 1px solid var(--accent-green);
-        }
-
-        .map-item.slot {
-            background: rgba(33, 150, 243, 0.2);
-            border: 1px solid var(--accent-blue);
-        }
-
-        .map-item.vip {
-            background: rgba(212, 175, 55, 0.2);
-            border: 1px solid var(--primary-gold);
-        }
-
-        .map-item.alerta {
-            animation: pulse-red 1s infinite;
-            background: rgba(255, 68, 68, 0.4);
-            border-color: var(--accent-red);
-        }
-
-        .map-item.cerrado {
-            background: rgba(100, 100, 100, 0.2);
-            border: 1px solid #555;
-            opacity: 0.5;
-        }
-
-        .alerts-panel {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .alert-item {
-            background: rgba(255, 68, 68, 0.1);
-            border-left: 4px solid var(--accent-red);
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .alert-item .time {
-            color: var(--text-muted);
-            font-size: 12px;
-        }
-
-        .env-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        .env-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-        }
-
-        .env-value {
-            font-size: 2em;
-            font-weight: 700;
-            color: var(--accent-green);
-            margin: 10px 0;
-        }
-
-        .logs-container {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .log-entry {
-            padding: 8px;
-            margin: 5px 0;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            border-left: 3px solid var(--accent-green);
-        }
-
-        .log-entry.error {
-            border-left-color: var(--accent-red);
-        }
-
-        .log-entry.warning {
-            border-left-color: #ff9800;
+        .map-cell.alert {
+            background: #ef4444;
+            animation: pulse 1s infinite;
         }
 
         @keyframes pulse {
-
-            0%,
-            100% {
+            0% {
                 opacity: 1;
             }
 
             50% {
                 opacity: 0.5;
             }
-        }
-
-        @keyframes pulse-red {
-            0% {
-                box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7);
-            }
-
-            70% {
-                box-shadow: 0 0 0 10px rgba(255, 68, 68, 0);
-            }
 
             100% {
-                box-shadow: 0 0 0 0 rgba(255, 68, 68, 0);
-            }
-        }
-
-        .jackpot-banner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(90deg, var(--primary-gold), #ffd700);
-            color: #000;
-            padding: 20px;
-            text-align: center;
-            font-size: 1.5em;
-            font-weight: bold;
-            z-index: 2000;
-            display: none;
-            animation: slideDown 0.5s ease;
-        }
-
-        .jackpot-banner.show {
-            display: block;
-        }
-
-        @keyframes slideDown {
-            from {
-                transform: translateY(-100%);
-            }
-
-            to {
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 1400px) {
-            .dashboard-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .main-panels {
-                grid-template-columns: 1fr;
+                opacity: 1;
             }
         }
     </style>
 </head>
 
-<body>
-    <div id="jackpotBanner" class="jackpot-banner">
-        🎰 ¡JACKPOT! 🎰 <span id="jackpotInfo"></span>
-    </div>
+<body class="min-h-screen p-6">
 
-    <div class="container">
-        <header>
-            <h1><i class="fa-solid fa-crown"></i> ACEVEDO CASINO - DASHBOARD</h1>
-            <div id="status" class="status disconnected">Desconectado</div>
-        </header>
-
-        <!-- Stats Grid -->
-        <div class="dashboard-grid">
-            <div class="stat-card">
-                <div class="icon-box gold"><i class="fa-solid fa-users"></i></div>
-                <div class="stat-info">
-                    <h3>Jugadores Activos</h3>
-                    <p class="stat-value" id="jugadores">0</p>
-                </div>
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+        <div class="flex items-center gap-4">
+            <div
+                class="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center text-black font-bold text-2xl">
+                <i class="fas fa-crown"></i>
             </div>
-            <div class="stat-card">
-                <div class="icon-box blue"><i class="fa-solid fa-dice"></i></div>
-                <div class="stat-info">
-                    <h3>Mesas Activas</h3>
-                    <p class="stat-value" id="mesas-activas">0/30</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="icon-box green"><i class="fa-solid fa-money-bill-trend-up"></i></div>
-                <div class="stat-info">
-                    <h3>Balance Diario</h3>
-                    <p class="stat-value" id="balance">$0</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="icon-box red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                <div class="stat-info">
-                    <h3>Alertas</h3>
-                    <p class="stat-value" id="alertas">0</p>
-                </div>
+            <div>
+                <h1 class="text-2xl font-bold text-white">Acevedo Casino</h1>
+                <p class="text-sm text-slate-400">Sistema de Monitoreo Minimalista</p>
             </div>
         </div>
-
-        <!-- Main Panels -->
-        <div class="main-panels">
-            <div class="panel">
-                <h2><i class="fa-solid fa-map-location-dot"></i> Mapa del Casino</h2>
-                <div id="casino-map"></div>
-            </div>
-            <div class="panel">
-                <h2><i class="fa-solid fa-bell"></i> Alertas Activas</h2>
-                <div class="alerts-panel" id="alerts-panel">
-                    <p style="color: var(--text-muted); text-align: center;">No hay alertas</p>
-                </div>
-            </div>
+        <div class="flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-full border border-slate-700">
+            <span id="connectionStatus" class="status-dot status-inactive"></span>
+            <span id="connectionText" class="text-xs font-medium text-slate-300">Desconectado</span>
         </div>
+    </header>
 
-        <!-- Environment Panel -->
-        <div class="panel" style="margin-bottom: 20px;">
-            <h2><i class="fa-solid fa-temperature-half"></i> Monitoreo Ambiental</h2>
-            <div class="env-grid">
-                <div class="env-card">
-                    <h3>Temperatura</h3>
-                    <div class="env-value" id="temperatura">--°C</div>
-                    <p style="font-size: 12px; color: var(--text-muted);">Sala Principal</p>
-                </div>
-                <div class="env-card">
-                    <h3>Humedad</h3>
-                    <div class="env-value" id="humedad">--%</div>
-                    <p style="font-size: 12px; color: var(--text-muted);">Promedio</p>
-                </div>
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="card p-6 rounded-xl">
+            <div class="flex justify-between items-start mb-4">
+                <div class="text-slate-400 text-sm">Jugadores</div>
+                <i class="fas fa-users text-amber-500"></i>
             </div>
+            <div class="text-3xl font-bold text-white" id="playersCount">0</div>
         </div>
-
-        <!-- Logs -->
-        <div class="logs-container">
-            <h2 style="margin-bottom: 15px; font-size: 1.2em;"><i class="fa-solid fa-list"></i> Registro de Eventos</h2>
-            <div id="logs"></div>
+        <div class="card p-6 rounded-xl">
+            <div class="flex justify-between items-start mb-4">
+                <div class="text-slate-400 text-sm">Mesas Activas</div>
+                <i class="fas fa-dice text-emerald-500"></i>
+            </div>
+            <div class="text-3xl font-bold text-white" id="activeTables">0/30</div>
+        </div>
+        <div class="card p-6 rounded-xl">
+            <div class="flex justify-between items-start mb-4">
+                <div class="text-slate-400 text-sm">Balance Diario</div>
+                <i class="fas fa-coins text-yellow-400"></i>
+            </div>
+            <div class="text-3xl font-bold text-white" id="dailyBalance">$0</div>
+        </div>
+        <div class="card p-6 rounded-xl">
+            <div class="flex justify-between items-start mb-4">
+                <div class="text-slate-400 text-sm">Alertas</div>
+                <i class="fas fa-bell text-red-500"></i>
+            </div>
+            <div class="text-3xl font-bold text-white" id="alertsCount">0</div>
         </div>
     </div>
 
-    <script src="../env/credential.js"></script>
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Floor Map -->
+        <div class="card p-6 rounded-xl lg:col-span-2">
+            <h3 class="text-lg font-semibold text-white mb-4">Mapa del Piso</h3>
+            <div class="mb-6">
+                <h4 class="text-xs uppercase text-slate-500 font-bold mb-2">Mesas de Juego (1-30)</h4>
+                <div class="grid-map" id="tablesMap"></div>
+            </div>
+            <div>
+                <h4 class="text-xs uppercase text-slate-500 font-bold mb-2">Tragamonedas (1-30)</h4>
+                <div class="grid-map" id="slotsMap"></div>
+            </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="card p-6 rounded-xl flex flex-col h-[500px]">
+            <h3 class="text-lg font-semibold text-white mb-4">Actividad Reciente</h3>
+            <div class="flex-1 overflow-y-auto space-y-3 pr-2" id="activityFeed">
+                <!-- Logs will appear here -->
+                <div class="text-center text-slate-500 text-sm mt-10">Esperando eventos...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../env/credential.js"></script>
     <script>
+        // Configuración Minimalista
+        const TOTAL_TABLES = 30;
+        const TOTAL_SLOTS = 30;
+        let activeTablesCount = 0;
+
+        // Inicializar UI
+        function initGrid(containerId, total, prefix) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let i = 1; i <= total; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'map-cell';
+                cell.id = `${prefix}-${i}`;
+                cell.title = `${prefix.toUpperCase()} #${i}`;
+                container.appendChild(cell);
+            }
+        }
+
+        initGrid('tablesMap', TOTAL_TABLES, 'mesa');
+        initGrid('slotsMap', TOTAL_SLOTS, 'slot');
+
+        // MQTT Setup
         const client = createMqttClient('client_acevedo');
 
-        // Estado del casino
-        let casinoState = {
-            mesas: {},
-            slots: {},
-            jugadores: 0,
-            balance: 0,
-            alertas: 0
-        };
-
-        // Inicializar mapa del casino
-        function initCasinoMap() {
-            const map = document.getElementById('casino-map');
-            map.innerHTML = '';
-
-            // Crear 30 mesas y 30 slots
-            for (let i = 1; i <= 30; i++) {
-                const mesa = document.createElement('div');
-                mesa.className = 'map-item mesa';
-                mesa.id = `mesa-${i}`;
-                mesa.innerHTML = `<i class="fa-solid fa-dice"></i><br>M${i}`;
-                mesa.onclick = () => showDetails('mesa', i);
-                map.appendChild(mesa);
-            }
-
-            for (let i = 1; i <= 30; i++) {
-                const slot = document.createElement('div');
-                slot.className = 'map-item slot';
-                slot.id = `slot-${i}`;
-                slot.innerHTML = `<i class="fa-solid fa-7"></i><br>S${i}`;
-                slot.onclick = () => showDetails('slot', i);
-                map.appendChild(slot);
-            }
-        }
-
-        function showDetails(type, id) {
-            const name = type === 'mesa' ? `Mesa ${id}` : `Slot ${id}`;
-            const state = type === 'mesa' ? casinoState.mesas[id] : casinoState.slots[id];
-            alert(`${name}\nEstado: ${state?.estado || 'Cerrado'}\nBalance: $${state?.balance || 0}`);
-        }
-
-        // Conexión MQTT
-        client.on("connect", () => {
-            console.log("✅ Dashboard conectado a MQTT!");
-            document.getElementById("status").textContent = "✅ Conectado";
-            document.getElementById("status").className = "status connected";
-            addLog("✅ Conectado a MQTT", "success");
-
-            // Suscribirse a todos los topics del casino
-            const topics = [
-                "casino/acevedo/mesa/+/estado",
-                "casino/acevedo/mesa/+/balance",
-                "casino/acevedo/mesa/+/alerta",
-                "casino/acevedo/slot/+/estado",
-                "casino/acevedo/slot/+/jackpot",
-                "casino/acevedo/finanzas/balance",
-                "casino/acevedo/finanzas/caja",
-                "casino/acevedo/seguridad/alerta",
-                "casino/acevedo/seguridad/acceso",
-                "casino/acevedo/ambiente/temperatura",
-                "casino/acevedo/ambiente/humedad",
-                "casino/acevedo/jugadores/count",
-                "casino/acevedo/#"
-            ];
-
-            topics.forEach((topic, index) => {
-                setTimeout(() => {
-                    client.subscribe(topic, { qos: 1 }, (err) => {
-                        if (!err) {
-                            console.log(`✅ Suscrito a: ${topic}`);
-                            addLog(`✅ Suscrito: ${topic}`, "success");
-                        }
-                    });
-                }, index * 100);
-            });
+        client.on('connect', () => {
+            updateStatus(true);
+            client.subscribe('casino/acevedo/#');
+            logEvent('Sistema conectado', 'system');
         });
 
-        client.on("error", (error) => {
-            console.error("Error:", error);
-            document.getElementById("status").textContent = "❌ Error de conexión";
-            document.getElementById("status").className = "status disconnected";
-            addLog("Error de conexión: " + error, "error");
-        });
+        client.on('offline', () => updateStatus(false));
 
-        client.on("offline", () => {
-            document.getElementById("status").textContent = "❌ Desconectado";
-            document.getElementById("status").className = "status disconnected";
-            addLog("⚠️ Desconectado de MQTT", "warning");
-        });
-
-        client.on("message", (topic, message) => {
+        client.on('message', (topic, message) => {
             const msg = message.toString();
-            console.log(`📨 ${topic}: ${msg}`);
-            updateDashboard(topic, msg);
-            addLog(`${topic}: ${msg}`, "info");
+            const parts = topic.split('/');
+            const category = parts[2]; // mesa, slot, finanzas, etc.
+            const id = parts[3];       // numero o subcategoria
+            const type = parts[4];     // estado, alerta, etc.
+
+            if (category === 'mesa' && type === 'estado') {
+                updateGridStatus('mesa', id, msg === 'activa');
+            } else if (category === 'slot' && type === 'estado') {
+                updateGridStatus('slot', id, msg === 'activa');
+            } else if (category === 'finanzas' && id === 'balance') {
+                document.getElementById('dailyBalance').innerText = `$${parseInt(msg).toLocaleString()}`;
+            } else if (category === 'jugadores' && id === 'count') {
+                document.getElementById('playersCount').innerText = msg;
+            } else if (topic.includes('alerta')) {
+                incrementAlerts();
+                logEvent(`ALERTA: ${msg}`, 'alert');
+            }
         });
 
-        function updateDashboard(topic, value) {
-            // Mesas
-            if (topic.includes('/mesa/')) {
-                const mesaId = topic.split('/')[3];
-                if (topic.includes('/estado')) {
-                    const element = document.getElementById(`mesa-${mesaId}`);
-                    if (element) {
-                        element.className = `map-item mesa ${value}`;
-                        if (!casinoState.mesas[mesaId]) casinoState.mesas[mesaId] = {};
-                        casinoState.mesas[mesaId].estado = value;
-                    }
-                } else if (topic.includes('/alerta')) {
-                    if (value === 'robo' || value === 'problema') {
-                        const element = document.getElementById(`mesa-${mesaId}`);
-                        if (element) element.classList.add('alerta');
-                        addAlert(`Mesa ${mesaId}: ${value.toUpperCase()}`);
-                    }
-                } else if (topic.includes('/balance')) {
-                    if (!casinoState.mesas[mesaId]) casinoState.mesas[mesaId] = {};
-                    casinoState.mesas[mesaId].balance = parseFloat(value);
+        // Helpers
+        function updateStatus(connected) {
+            const dot = document.getElementById('connectionStatus');
+            const text = document.getElementById('connectionText');
+            if (connected) {
+                dot.className = 'status-dot status-active';
+                text.innerText = 'En Línea';
+                text.className = 'text-xs font-medium text-emerald-400';
+            } else {
+                dot.className = 'status-dot status-inactive';
+                text.innerText = 'Desconectado';
+                text.className = 'text-xs font-medium text-red-400';
+            }
+        }
+
+        function updateGridStatus(type, id, isActive) {
+            const cell = document.getElementById(`${type}-${id}`);
+            if (cell) {
+                if (isActive) {
+                    cell.classList.add('active');
+                    if (type === 'mesa') activeTablesCount++;
+                } else {
+                    cell.classList.remove('active');
+                    if (type === 'mesa') activeTablesCount = Math.max(0, activeTablesCount - 1);
                 }
-            }
-
-            // Slots
-            if (topic.includes('/slot/')) {
-                const slotId = topic.split('/')[3];
-                if (topic.includes('/estado')) {
-                    const element = document.getElementById(`slot-${slotId}`);
-                    if (element) {
-                        element.className = `map-item slot ${value}`;
-                        if (!casinoState.slots[slotId]) casinoState.slots[slotId] = {};
-                        casinoState.slots[slotId].estado = value;
-                    }
-                } else if (topic.includes('/jackpot')) {
-                    showJackpot(`Slot ${slotId}`, value);
-                }
-            }
-
-            // Finanzas
-            if (topic.includes('/finanzas/balance')) {
-                casinoState.balance = parseFloat(value);
-                document.getElementById('balance').textContent = `$${parseInt(value).toLocaleString()}`;
-            }
-
-            // Ambiente
-            if (topic.includes('/ambiente/temperatura')) {
-                document.getElementById('temperatura').textContent = `${value}°C`;
-            }
-            if (topic.includes('/ambiente/humedad')) {
-                document.getElementById('humedad').textContent = `${value}%`;
-            }
-
-            // Jugadores
-            if (topic.includes('/jugadores/count')) {
-                casinoState.jugadores = parseInt(value);
-                document.getElementById('jugadores').textContent = value;
-            }
-
-            // Seguridad
-            if (topic.includes('/seguridad/alerta')) {
-                addAlert(`Seguridad: ${value}`);
-            }
-
-            // Actualizar contadores
-            updateCounters();
-        }
-
-        function updateCounters() {
-            const mesasActivas = Object.values(casinoState.mesas).filter(m => m.estado !== 'cerrado').length;
-            document.getElementById('mesas-activas').textContent = `${mesasActivas}/30`;
-        }
-
-        function addAlert(message) {
-            casinoState.alertas++;
-            document.getElementById('alertas').textContent = casinoState.alertas;
-
-            const panel = document.getElementById('alerts-panel');
-            if (panel.querySelector('p')) panel.innerHTML = '';
-
-            const alert = document.createElement('div');
-            alert.className = 'alert-item';
-            const time = new Date().toLocaleTimeString();
-            alert.innerHTML = `<div class="time">${time}</div><div>${message}</div>`;
-            panel.insertBefore(alert, panel.firstChild);
-
-            // Limitar a 10 alertas
-            while (panel.children.length > 10) {
-                panel.removeChild(panel.lastChild);
+                document.getElementById('activeTables').innerText = `${activeTablesCount}/${TOTAL_TABLES}`;
             }
         }
 
-        function showJackpot(location, amount) {
-            const banner = document.getElementById('jackpotBanner');
-            document.getElementById('jackpotInfo').textContent = `${location} - $${amount}`;
-            banner.classList.add('show');
-            setTimeout(() => banner.classList.remove('show'), 5000);
+        function incrementAlerts() {
+            const el = document.getElementById('alertsCount');
+            el.innerText = parseInt(el.innerText) + 1;
         }
 
-        function addLog(message, type = 'info') {
-            const logsContainer = document.getElementById("logs");
-            const logEntry = document.createElement("div");
-            logEntry.className = `log-entry ${type}`;
-            const timestamp = new Date().toLocaleTimeString();
-            logEntry.innerHTML = `<span style="color: #888;">[${timestamp}]</span> ${message}`;
-            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+        function logEvent(msg, type) {
+            const feed = document.getElementById('activityFeed');
+            const div = document.createElement('div');
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            while (logsContainer.children.length > 50) {
-                logsContainer.removeChild(logsContainer.lastChild);
-            }
+            let colorClass = 'text-slate-300';
+            let icon = 'fa-info-circle';
+
+            if (type === 'alert') { colorClass = 'text-red-400'; icon = 'fa-exclamation-triangle'; }
+            if (type === 'system') { colorClass = 'text-emerald-400'; icon = 'fa-check-circle'; }
+
+            div.className = `flex items-center gap-3 text-sm p-2 rounded bg-slate-800/50 border border-slate-700/50 ${colorClass}`;
+            div.innerHTML = `
+                <span class="text-xs text-slate-500 font-mono">${time}</span>
+                <i class="fas ${icon} text-xs"></i>
+                <span class="truncate">${msg}</span>
+            `;
+
+            feed.insertBefore(div, feed.firstChild);
+            if (feed.children.length > 20) feed.removeChild(feed.lastChild);
         }
-
-        // Inicializar
-        window.addEventListener('load', () => {
-            initCasinoMap();
-        });
     </script>
 </body>
 

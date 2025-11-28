@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Proyectos IoT - 80 Ideas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-text {
+            background: linear-gradient(to right, #4f46e5, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-network-wired text-3xl text-indigo-600"></i>
+                <h1 class="text-2xl font-bold text-gray-800">IoT Projects <span class="text-indigo-600">Hub</span></h1>
+            </div>
+            <div class="text-sm text-gray-500">
+                80 Proyectos Generados
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+
+        <!-- Search -->
+        <div class="mb-8 max-w-2xl mx-auto">
+            <div class="relative">
+                <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                <input type="text" id="searchInput" placeholder="Buscar proyecto..."
+                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition shadow-sm">
+            </div>
+        </div>
+
+        <!-- Categories Navigation -->
+        <div class="flex flex-wrap gap-2 justify-center mb-12" id="categoryFilters">
+            <button class="px-4 py-2 rounded-full bg-indigo-600 text-white font-medium shadow-md"
+                onclick="filterProjects('all')">Todos</button>
+            <button class="px-4 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                onclick="filterProjects('Smart City')">🏙️ Smart City</button>
+            <button class="px-4 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                onclick="filterProjects('Industrial')">🏭 Industrial</button>
+            <button class="px-4 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                onclick="filterProjects('Healthcare')">🏥 Salud</button>
+            <button class="px-4 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                onclick="filterProjects('Agriculture')">🌱 Agro</button>
+            <button class="px-4 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                onclick="filterProjects('Retail')">🛒 Retail</button>
+            <button class="px-4 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                onclick="filterProjects('Entertainment')">🎮 Ocio</button>
+            <button class="px-4 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                onclick="filterProjects('Security')">🛡️ Seguridad</button>
+            <button class="px-4 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                onclick="filterProjects('Gym')">🏋️ Gym</button>
+            <button class="px-4 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                onclick="filterProjects('Maps')">🗺️ Mapas</button>
+        </div>
+
+        <!-- Projects Grid -->
+        <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Projects will be injected here via JS -->
+        </div>
+
+    </main>
+
+    <script>
+        // Data generated from the previous step
+        const projects = [
+            // Smart City
+            { id: 1, cat: 'Smart City', name: 'Semáforo Inteligente Adaptativo', desc: 'Control de tráfico que cambia según la densidad de autos detectada.' },
+            { id: 2, cat: 'Smart City', name: 'Sistema de Parking Público', desc: 'Sensores en plazas de calle que guían a los conductores a lugares libres vía app.' },
+            { id: 3, cat: 'Smart City', name: 'Alumbrado Público Eficiente', desc: 'Farolas que aumentan intensidad solo cuando detectan peatones o vehículos.' },
+            { id: 4, cat: 'Smart City', name: 'Gestión de Residuos Urbanos', desc: 'Contenedores que avisan a los camiones cuando están llenos para optimizar rutas.' },
+            { id: 5, cat: 'Smart City', name: 'Monitoreo de Calidad del Aire', desc: 'Estaciones en paradas de bus que miden CO2 y recomiendan uso de mascarilla.' },
+            { id: 6, cat: 'Smart City', name: 'Alerta de Inundaciones', desc: 'Sensores en alcantarillas y ríos que activan sirenas y barreras automáticas.' },
+            { id: 7, cat: 'Smart City', name: 'Parada de Bus Inteligente', desc: 'Pantalla que muestra ubicación real del bus y permite solicitar parada para discapacitados.' },
+            { id: 8, cat: 'Smart City', name: 'Riego de Parques Públicos', desc: 'Sistema que riega solo si la humedad del suelo es baja y no hay previsión de lluvia.' },
+            { id: 9, cat: 'Smart City', name: 'Detección de Disparos Ruidos', desc: 'Triangulación de sonidos fuertes para alertar a policía en zonas peligrosas.' },
+            { id: 10, cat: 'Smart City', name: 'Kiosco de Información Turística', desc: 'Pantalla interactiva que sugiere rutas y envía mapas al móvil del turista.' },
+
+            // Industrial
+            { id: 11, cat: 'Industrial', name: 'Brazo Robótico Clasificador', desc: 'Cinta transportadora que separa objetos por color usando sensores RGB.' },
+            { id: 12, cat: 'Industrial', name: 'Monitor de Vibración de Maquinaria', desc: 'Detecta patrones anómalos en motores para predecir fallos (Mantenimiento Predictivo).' },
+            { id: 13, cat: 'Industrial', name: 'Control de Tanques Químicos', desc: 'Monitoreo de nivel, presión y temperatura con válvulas de alivio automáticas.' },
+            { id: 14, cat: 'Industrial', name: 'Sistema Andon Digital', desc: 'Botoneras en líneas de montaje para alertar problemas y detener la producción.' },
+            { id: 15, cat: 'Industrial', name: 'Rastreo de Activos en Almacén', desc: 'Localización precisa de montacargas y pallets dentro de una nave industrial.' },
+            { id: 16, cat: 'Industrial', name: 'Control de Acceso Biométrico', desc: 'Puertas de seguridad que requieren huella/RFID y registran entradas en tiempo real.' },
+            { id: 17, cat: 'Industrial', name: 'Gestión de Cadena de Frío', desc: 'Sensores en camiones frigoríficos que alertan si la temperatura sube durante el transporte.' },
+            { id: 18, cat: 'Industrial', name: 'Medidor de Consumo Energético Industrial', desc: 'Dashboard que muestra el gasto eléctrico por máquina en tiempo real.' },
+            { id: 19, cat: 'Industrial', name: 'Detector de Fugas de Gas', desc: 'Sensores distribuidos que cierran llaves de paso principales ante fugas.' },
+            { id: 20, cat: 'Industrial', name: 'Silo de Granos Automatizado', desc: 'Control de humedad y temperatura interna para evitar fermentación del grano.' },
+
+            // Healthcare
+            { id: 21, cat: 'Healthcare', name: 'Dispensador de Pastillas Inteligente', desc: 'Libera dosis a horas exactas y notifica a familiares si no se retira.' },
+            { id: 22, cat: 'Healthcare', name: 'Cama de Hospital Inteligente', desc: 'Detecta si el paciente se levanta o si hay humedad (incontinencia).' },
+            { id: 23, cat: 'Healthcare', name: 'Monitor de Bebé Avanzado', desc: 'Analiza el llanto y monitorea respiración/temperatura, alertando al móvil.' },
+            { id: 24, cat: 'Healthcare', name: 'Rehabilitación con Sensores', desc: 'Guante con giroscopios que gamifica ejercicios de recuperación de mano.' },
+            { id: 25, cat: 'Healthcare', name: 'Refrigerador de Vacunas', desc: 'Control estricto de temperatura con batería de respaldo y alertas críticas.' },
+            { id: 26, cat: 'Healthcare', name: 'Bastón para Ciegos Conectado', desc: 'Detecta obstáculos con ultrasonido y avisa a cuidadores botón de pánico.' },
+            { id: 27, cat: 'Healthcare', name: 'Sistema de Llamada a Enfermería', desc: 'Botones en habitaciones que priorizan urgencias en el smartwatch de enfermeras.' },
+            { id: 28, cat: 'Healthcare', name: 'Control de Aforo en Salas de Espera', desc: 'Conteo de personas para mantener distancia social y ventilación.' },
+            { id: 29, cat: 'Healthcare', name: 'Chaleco de Seguridad para Obra', desc: 'Detecta caídas, golpes de calor y ritmo cardíaco de trabajadores.' },
+            { id: 30, cat: 'Healthcare', name: 'Inodoro Inteligente', desc: 'Sensores básicos que analizan frecuencia y tiempo de uso para salud digestiva.' },
+
+            // Agriculture
+            { id: 31, cat: 'Agriculture', name: 'Invernadero Automatizado', desc: 'Control total de ventanas, ventiladores, riego y luces UV según el clima.' },
+            { id: 32, cat: 'Agriculture', name: 'Comedero de Ganado Automático', desc: 'Dispensa alimento según el RFID del animal y registra su consumo.' },
+            { id: 33, cat: 'Agriculture', name: 'Drone de Monitoreo de Cultivos', desc: 'Estación base que recibe datos de vuelo y estado de plantas.' },
+            { id: 34, cat: 'Agriculture', name: 'Sistema de Acuaponía', desc: 'Control del ciclo del agua entre peceras y plantas hidropónicas.' },
+            { id: 35, cat: 'Agriculture', name: 'Espantapájaros Láser Sonoro', desc: 'Detecta movimiento de aves y activa disuasivos sin dañar a los animales.' },
+            { id: 36, cat: 'Agriculture', name: 'Estación Meteorológica Local', desc: 'Mide viento, lluvia y UV para automatizar toldos y riegos de la zona.' },
+            { id: 37, cat: 'Agriculture', name: 'Monitor de Colmenas', desc: 'Mide peso (producción de miel) y zumbido (salud de la reina) en apiarios.' },
+            { id: 38, cat: 'Agriculture', name: 'Control de Heladas', desc: 'Activa aspersores o calefactores en frutales cuando la temperatura baja de 0°C.' },
+            { id: 39, cat: 'Agriculture', name: 'Rastreo de Ganado GPS', desc: 'Collares que definen un "cerco virtual" y alertan si un animal sale de la zona.' },
+            { id: 40, cat: 'Agriculture', name: 'Gestión de Silvicultura', desc: 'Sensores de humo en bosques remotos para detección temprana de incendios.' },
+
+            // Retail
+            { id: 41, cat: 'Retail', name: 'Probador de Ropa Inteligente', desc: 'Espejo que detecta la prenda (RFID) y permite pedir otra talla desde la pantalla.' },
+            { id: 42, cat: 'Retail', name: 'Estantería Inteligente', desc: 'Detecta cuando se retira un producto y avisa para reposición inmediata.' },
+            { id: 43, cat: 'Retail', name: 'Carrito de Compra Auto-cobro', desc: 'Escanea productos al meterlos y cobra al salir sin pasar por caja.' },
+            { id: 44, cat: 'Retail', name: 'Gestión de Colas', desc: 'Sensores que abren nuevas cajas automáticamente cuando la fila supera X personas.' },
+            { id: 45, cat: 'Retail', name: 'Vending Machine Conectada', desc: 'Reporta stock, fallos y permite pago/reserva desde app móvil.' },
+            { id: 46, cat: 'Retail', name: 'Etiquetas de Precio Electrónicas', desc: 'Actualización centralizada de precios en góndolas vía MQTT.' },
+            { id: 47, cat: 'Retail', name: 'Cafetería Automatizada', desc: 'El cliente pide desde la mesa (QR) y la máquina prepara el café en orden.' },
+            { id: 48, cat: 'Retail', name: 'Lavandería Autoservicio App', desc: 'Muestra qué máquinas están libres y avisa cuando tu ropa está lista.' },
+            { id: 49, cat: 'Retail', name: 'Control de Caducidad', desc: 'Sistema que alerta descuentos en productos próximos a vencer en estantería.' },
+            { id: 50, cat: 'Retail', name: 'Feedback de Cliente Físico', desc: 'Botones de satisfacción en salida que alertan al gerente si hay muchas quejas.' },
+
+            // Entertainment
+            { id: 51, cat: 'Entertainment', name: 'Escape Room Domótico', desc: 'Sala donde las pistas activan mecanismos reales (abrir cajones, luces) vía MQTT.' },
+            { id: 52, cat: 'Entertainment', name: 'Tablero de Ajedrez Remoto', desc: 'Mueves piezas físicas y se mueven en el tablero del oponente en otro país.' },
+            { id: 53, cat: 'Entertainment', name: 'Simulador de Carreras', desc: 'Volante y pedales que envían telemetría a un dashboard de ingeniero de pista.' },
+            { id: 54, cat: 'Entertainment', name: 'Instrumentos Musicales Colaborativos', desc: 'Varios usuarios tocan desde sus casas y suena en una sala central.' },
+            { id: 55, cat: 'Entertainment', name: 'Museo Interactivo', desc: 'Las obras "reaccionan" (luz, sonido) cuando el visitante se acerca.' },
+            { id: 56, cat: 'Entertainment', name: 'Sistema de Votación en Clases', desc: 'Botoneras físicas para alumnos para responder quiz en tiempo real.' },
+            { id: 57, cat: 'Entertainment', name: 'Laboratorio de Química Remoto', desc: 'Brazo robótico que mezcla líquidos peligrosos controlado por alumnos.' },
+            { id: 58, cat: 'Entertainment', name: 'Marcador Deportivo LED', desc: 'Controlado desde móvil para partidos de barrio, con bocina y tiempo.' },
+            { id: 59, cat: 'Entertainment', name: 'Juguete Tamagotchi Físico', desc: 'Mascota robot que "vive" en un servidor y interactúas con ella físicamente.' },
+            { id: 60, cat: 'Entertainment', name: 'Teatro Automatizado', desc: 'Control de telón, luces y efectos de humo sincronizados con el guion.' },
+
+            // Security
+            { id: 61, cat: 'Security', name: 'Perímetro Láser Invisible', desc: 'Barreras láser que al cortarse activan cámaras y luces estroboscópicas.' },
+            { id: 62, cat: 'Security', name: 'Caja Fuerte Biométrica Remota', desc: 'Solo se abre si el usuario pone su huella Y aprueba desde la app móvil.' },
+            { id: 63, cat: 'Security', name: 'Dron Patrulla Autónomo', desc: 'Dron que recorre una ruta GPS y transmite video si detecta movimiento.' },
+            { id: 64, cat: 'Security', name: 'Botón de Pánico Vecinal', desc: 'Sistema comunitario donde al pulsar un botón físico, alerta a todos los vecinos en un mapa.' },
+            { id: 65, cat: 'Security', name: 'Control de Acceso por Niveles', desc: 'Tarjetas RFID que dan acceso a diferentes zonas según el rango del empleado.' },
+            { id: 66, cat: 'Security', name: 'Detector de Inhibidores de Señal', desc: 'Alerta si detecta intentos de bloquear la señal WiFi/GSM de la alarma.' },
+            { id: 67, cat: 'Security', name: 'Simulador de Presencia', desc: 'Enciende luces y TV aleatoriamente cuando la casa está en "Modo Vacaciones".' },
+
+            // Gym
+            { id: 68, cat: 'Gym', name: 'Máquina de Pesas Conectada', desc: 'Cuenta repeticiones y series automáticamente usando acelerómetros.' },
+            { id: 69, cat: 'Gym', name: 'Mapa de Calor del Gimnasio', desc: 'Muestra en tiempo real qué máquinas están ocupadas para evitar esperas.' },
+            { id: 70, cat: 'Gym', name: 'Tapete de Yoga Inteligente', desc: 'Sensores de presión que corrigen tu postura si no estás bien alineado.' },
+            { id: 71, cat: 'Gym', name: 'Bicicleta de Spinning Virtual', desc: 'La resistencia de la bici cambia según la pendiente de la ruta en la pantalla.' },
+            { id: 72, cat: 'Gym', name: 'Control de Hidratación', desc: 'Botella inteligente que mide cuánto bebes y te avisa si estás deshidratado.' },
+            { id: 73, cat: 'Gym', name: 'Acceso al Gym por Reconocimiento Facial', desc: 'Torno de entrada que te saluda y carga tu perfil de entrenamiento.' },
+            { id: 74, cat: 'Gym', name: 'Cronómetro de Boxeo IoT', desc: 'Saco de boxeo que mide la fuerza y velocidad de los golpes.' },
+
+            // Maps
+            { id: 75, cat: 'Maps', name: 'Rastreo de Flota de Peligros', desc: 'Mapa en tiempo real de camiones con carga peligrosa y alertas de desvío.' },
+            { id: 76, cat: 'Maps', name: 'Geocercas para Niños Mascotas', desc: 'Alerta inmediata si el tracker GPS sale de una zona segura (parque/casa).' },
+            { id: 77, cat: 'Maps', name: 'Mapa de Densidad de Transporte', desc: 'Visualización en vivo de dónde están todos los buses/metros de la ciudad.' },
+            { id: 78, cat: 'Maps', name: 'Monitoreo de Incendios Forestales', desc: 'Mapa que actualiza el avance del fuego según sensores de temperatura en el bosque.' },
+            { id: 79, cat: 'Maps', name: 'Rastreo de Activos Hospitalarios', desc: 'Mapa indoor para localizar dónde está el desfibrilador o la silla de ruedas más cercana.' },
+            { id: 80, cat: 'Maps', name: 'Logística de Última Milla', desc: 'Mapa para el cliente que muestra exactamente dónde está su repartidor en bici.' }
+        ];
+
+        function getFolderSlug(name) {
+            return name.toLowerCase()
+                .replace(/á/g, 'a').replace(/é/g, 'e').replace(/í/g, 'i').replace(/ó/g, 'o').replace(/ú/g, 'u').replace(/ñ/g, 'n')
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        function getCategoryIcon(cat) {
+            const icons = {
+                'Smart City': 'fa-city text-blue-500',
+                'Industrial': 'fa-industry text-gray-600',
+                'Healthcare': 'fa-heartbeat text-red-500',
+                'Agriculture': 'fa-leaf text-green-500',
+                'Retail': 'fa-shopping-cart text-purple-500',
+                'Entertainment': 'fa-gamepad text-yellow-500',
+                'Security': 'fa-shield-alt text-indigo-500',
+                'Gym': 'fa-dumbbell text-orange-500',
+                'Maps': 'fa-map-marked-alt text-teal-500'
+            };
+            return icons[cat] || 'fa-project-diagram';
+        }
+
+        function renderProjects(filter = 'all') {
+            const grid = document.getElementById('projectsGrid');
+            grid.innerHTML = '';
+
+            const filtered = filter === 'all'
+                ? projects
+                : projects.filter(p => p.cat === filter);
+
+            filtered.forEach(p => {
+                const slug = getFolderSlug(p.name);
+                const folder = `project-${String(p.id).padStart(2, '0')}-${slug}`;
+
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden card-hover transition-all duration-300';
+                card.innerHTML = `
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                                ${p.cat}
+                            </span>
+                            <span class="text-xs text-gray-400">#${String(p.id).padStart(2, '0')}</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2 leading-tight">${p.name}</h3>
+                        <p class="text-gray-600 text-sm mb-6 line-clamp-2">${p.desc}</p>
+                        
+                        <div class="flex gap-2">
+                            <a href="${folder}/control.html" class="flex-1 text-center py-2 px-4 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-medium text-sm transition">
+                                <i class="fas fa-sliders-h mr-1"></i> Control
+                            </a>
+                            <a href="${folder}/dashboard.html" class="flex-1 text-center py-2 px-4 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 font-medium text-sm transition">
+                                <i class="fas fa-chart-line mr-1"></i> Dash
+                            </a>
+                        </div>
+                    </div>
+                    <div class="h-1 w-full bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('#projectsGrid > div');
+
+            cards.forEach(card => {
+                const title = card.querySelector('h3').innerText.toLowerCase();
+                const desc = card.querySelector('p').innerText.toLowerCase();
+                if (title.includes(term) || desc.includes(term)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Filter buttons active state
+        function filterProjects(cat) {
+            renderProjects(cat);
+
+            // Update buttons style
+            const buttons = document.querySelectorAll('#categoryFilters button');
+            buttons.forEach(btn => {
+                if ((cat === 'all' && btn.innerText === 'Todos') || btn.innerText.includes(cat)) {
+                    btn.classList.remove('bg-white', 'text-gray-600');
+                    btn.classList.add('bg-indigo-600', 'text-white');
+                } else {
+                    btn.classList.add('bg-white', 'text-gray-600');
+                    btn.classList.remove('bg-indigo-600', 'text-white');
+                }
+            });
+        }
+
+        // Initial render
+        renderProjects();
+
+    </script>
+</body>
+
+</html>
