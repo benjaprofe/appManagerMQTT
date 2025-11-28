@@ -18,6 +18,57 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border: none;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+            color: white;
+            border-radius: 1rem 1rem 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            opacity: 0.9;
+        }
+
+        .close:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -78,6 +129,19 @@
         </div>
 
     </main>
+
+    <!-- Modal -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="text-2xl font-bold"></h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent"></div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Data generated from the previous step
@@ -228,14 +292,9 @@
                         <h3 class="text-xl font-bold text-gray-800 mb-2 leading-tight">${p.name}</h3>
                         <p class="text-gray-600 text-sm mb-6 line-clamp-2">${p.desc}</p>
                         
-                        <div class="flex gap-2">
-                            <a href="${folder}/control.html" class="flex-1 text-center py-2 px-4 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-medium text-sm transition">
-                                <i class="fas fa-sliders-h mr-1"></i> Control
-                            </a>
-                            <a href="${folder}/dashboard.html" class="flex-1 text-center py-2 px-4 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 font-medium text-sm transition">
-                                <i class="fas fa-chart-line mr-1"></i> Dash
-                            </a>
-                        </div>
+                        <button onclick="openModal(${p.id})" class="w-full py-2 px-4 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-medium text-sm transition flex items-center justify-center gap-2">
+                            <i class="fas fa-info-circle"></i> Ver Detalles
+                        </button>
                     </div>
                     <div class="h-1 w-full bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
                 `;
@@ -278,6 +337,251 @@
 
         // Initial render
         renderProjects();
+
+        // Modal functionality
+        function openModal(projectId) {
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            const modal = document.getElementById('projectModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+
+            modalTitle.textContent = `#${String(project.id).padStart(2, '0')} - ${project.name}`;
+            
+            // Get detailed info from PLANES_PROYECTOS_IOT.md (simplified version)
+            const categoryInfo = getCategoryInfo(project.cat);
+            const projectDetails = getProjectDetails(project.id, project.cat);
+
+            modalContent.innerHTML = `
+                <div class="space-y-6">
+                    <div>
+                        <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-indigo-100 text-indigo-700 mb-4">
+                            ${project.cat}
+                        </span>
+                        <p class="text-gray-700 text-lg mb-4">${project.desc}</p>
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                            <i class="fas fa-microchip"></i> Dispositivos IoT
+                        </h3>
+                        <ul class="list-disc list-inside text-blue-800 space-y-1">
+                            ${projectDetails.devices.map(d => `<li>${d}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h3 class="font-bold text-purple-900 mb-2 flex items-center gap-2">
+                            <i class="fas fa-exchange-alt"></i> Topics MQTT Principales
+                        </h3>
+                        <div class="space-y-2">
+                            ${projectDetails.topics.map(t => `
+                                <div class="bg-white p-2 rounded border-l-4 border-purple-500">
+                                    <code class="text-sm text-purple-800">${t.name}</code>
+                                    <p class="text-xs text-gray-600 mt-1">${t.desc}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h3 class="font-bold text-green-900 mb-2 flex items-center gap-2">
+                            <i class="fas fa-sync-alt"></i> Comunicación Bidireccional
+                        </h3>
+                        <p class="text-green-800">${projectDetails.bidirectional}</p>
+                    </div>
+
+                    <div class="bg-orange-50 p-4 rounded-lg">
+                        <h3 class="font-bold text-orange-900 mb-2 flex items-center gap-2">
+                            <i class="fas fa-project-diagram"></i> Flujo de Datos
+                        </h3>
+                        <ol class="list-decimal list-inside text-orange-800 space-y-1">
+                            ${projectDetails.flow.map(f => `<li>${f}</li>`).join('')}
+                        </ol>
+                    </div>
+
+                    <div class="pt-4 border-t">
+                        <a href="PLANES_PROYECTOS_IOT.md" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-2">
+                            <i class="fas fa-book"></i> Ver Plan Completo de Implementación
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('projectModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('projectModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // Get project details - generates based on project description and category
+        function getProjectDetails(id, category) {
+            const project = projects.find(p => p.id === id);
+            if (!project) return getDefaultDetails(category);
+
+            const categoryPrefix = {
+                'Smart City': 'smartcity',
+                'Industrial': 'industrial',
+                'Healthcare': 'healthcare',
+                'Agriculture': 'agriculture',
+                'Retail': 'retail',
+                'Entertainment': 'entertainment',
+                'Security': 'security',
+                'Gym': 'gym',
+                'Maps': 'maps'
+            }[category] || 'project';
+
+            const slug = getFolderSlug(project.name);
+            
+            // Generate devices based on description keywords
+            const devices = generateDevices(project.desc, category);
+            
+            // Generate topics based on project type
+            const topics = generateTopics(project, categoryPrefix, slug);
+            
+            // Generate bidirectional description
+            const bidirectional = generateBidirectional(project.desc, category);
+            
+            // Generate flow
+            const flow = generateFlow(project.desc, category);
+
+            return {
+                devices,
+                topics,
+                bidirectional,
+                flow
+            };
+        }
+
+        function generateDevices(desc, category) {
+            const devices = [];
+            const lowerDesc = desc.toLowerCase();
+            
+            if (lowerDesc.includes('sensor')) devices.push('Sensores IoT especializados');
+            if (lowerDesc.includes('cámara') || lowerDesc.includes('camara') || lowerDesc.includes('video')) devices.push('Sistema de visión/cámara');
+            if (lowerDesc.includes('gps') || lowerDesc.includes('ubicación') || lowerDesc.includes('localización')) devices.push('Módulo GPS para geolocalización');
+            if (lowerDesc.includes('control') || lowerDesc.includes('actuador')) devices.push('Actuadores y controladores');
+            if (lowerDesc.includes('display') || lowerDesc.includes('pantalla') || lowerDesc.includes('led')) devices.push('Display/Pantalla LED');
+            if (lowerDesc.includes('app') || lowerDesc.includes('móvil') || lowerDesc.includes('movil')) devices.push('Gateway de comunicación móvil');
+            if (lowerDesc.includes('rfid') || lowerDesc.includes('biométrico') || lowerDesc.includes('huella')) devices.push('Lector RFID/Biométrico');
+            if (lowerDesc.includes('drone') || lowerDesc.includes('dron')) devices.push('Drone con sensores integrados');
+            if (lowerDesc.includes('robot') || lowerDesc.includes('robótico')) devices.push('Sistema robótico con actuadores');
+            if (lowerDesc.includes('botón') || lowerDesc.includes('boton')) devices.push('Interfaz de botones físicos');
+            
+            // Category-specific defaults
+            if (devices.length === 0) {
+                if (category === 'Smart City') devices.push('Sensores urbanos', 'Gateway LoRaWAN/WiFi', 'Actuadores de control');
+                else if (category === 'Industrial') devices.push('Sensores industriales', 'PLC/Controlador', 'Actuadores industriales');
+                else if (category === 'Healthcare') devices.push('Sensores biomédicos', 'Gateway de datos', 'Sistema de alertas');
+                else if (category === 'Agriculture') devices.push('Sensores agrícolas', 'Gateway con energía solar', 'Sistema de riego/control');
+                else devices.push('Sensores IoT', 'Gateway de comunicación', 'Sistema de control');
+            }
+            
+            return devices;
+        }
+
+        function generateTopics(project, prefix, slug) {
+            const topics = [
+                { name: `${prefix}/${slug}/sensor/datos`, desc: 'Publica datos de sensores en tiempo real' },
+                { name: `${prefix}/${slug}/control/set`, desc: 'Subscribe: Comandos de control remoto' },
+                { name: `${prefix}/${slug}/estado`, desc: 'Publica estado actual del sistema' }
+            ];
+            
+            const lowerDesc = project.desc.toLowerCase();
+            if (lowerDesc.includes('alerta') || lowerDesc.includes('emergencia')) {
+                topics.push({ name: `${prefix}/${slug}/alerta`, desc: 'Publica alertas y notificaciones críticas' });
+            }
+            if (lowerDesc.includes('config') || lowerDesc.includes('ajuste')) {
+                topics.push({ name: `${prefix}/${slug}/config`, desc: 'Subscribe: Configuración de parámetros' });
+            }
+            
+            return topics;
+        }
+
+        function generateBidirectional(desc, category) {
+            const lowerDesc = desc.toLowerCase();
+            let bidirectional = 'Sensores publican datos continuamente. ';
+            
+            if (lowerDesc.includes('app') || lowerDesc.includes('móvil') || lowerDesc.includes('movil')) {
+                bidirectional += 'Aplicación móvil subscribe a datos y puede enviar comandos. ';
+            }
+            if (lowerDesc.includes('dashboard') || lowerDesc.includes('monitoreo')) {
+                bidirectional += 'Dashboard central permite monitoreo y control remoto. ';
+            }
+            if (lowerDesc.includes('automático') || lowerDesc.includes('automatico')) {
+                bidirectional += 'Sistema ejecuta acciones automáticas basadas en datos de sensores. ';
+            }
+            
+            bidirectional += 'Comunicación bidireccional permite control en tiempo real y respuesta inmediata a eventos.';
+            
+            return bidirectional;
+        }
+
+        function generateFlow(desc, category) {
+            const flow = [
+                'Sensores IoT capturan datos del entorno',
+                'Datos se publican vía MQTT al broker',
+                'Sistema procesa y analiza información',
+                'Dashboard muestra estado en tiempo real'
+            ];
+            
+            const lowerDesc = desc.toLowerCase();
+            if (lowerDesc.includes('alerta') || lowerDesc.includes('emergencia')) {
+                flow.push('Sistema genera alertas automáticas cuando detecta anomalías');
+            }
+            if (lowerDesc.includes('control') || lowerDesc.includes('actuador')) {
+                flow.push('Operador puede enviar comandos de control remoto');
+                flow.push('Actuadores ejecutan acciones según comandos recibidos');
+            }
+            if (lowerDesc.includes('app') || lowerDesc.includes('móvil')) {
+                flow.push('Aplicación móvil recibe notificaciones y permite interacción');
+            }
+            
+            return flow;
+        }
+
+        function getDefaultDetails(category) {
+            return {
+                devices: ['Sensores IoT', 'Gateway de comunicación', 'Sistema de control'],
+                topics: [
+                    { name: 'project/sensor/datos', desc: 'Datos de sensores' },
+                    { name: 'project/control/set', desc: 'Comandos de control' },
+                    { name: 'project/estado', desc: 'Estado del sistema' }
+                ],
+                bidirectional: 'Comunicación bidireccional entre sensores, actuadores y sistema de control.',
+                flow: [
+                    'Sensores publican datos',
+                    'Sistema procesa información',
+                    'Dashboard muestra estado',
+                    'Control remoto disponible'
+                ]
+            };
+        }
+
+        function getCategoryInfo(category) {
+            const info = {
+                'Smart City': 'Proyectos para ciudades inteligentes y gestión urbana',
+                'Industrial': 'Soluciones para automatización y monitoreo industrial',
+                'Healthcare': 'Aplicaciones de salud y bienestar',
+                'Agriculture': 'Tecnología para agricultura y ganadería',
+                'Retail': 'Soluciones para comercio y retail',
+                'Entertainment': 'Proyectos de entretenimiento y ocio',
+                'Security': 'Sistemas de seguridad y vigilancia',
+                'Gym': 'Aplicaciones para gimnasios y fitness',
+                'Maps': 'Sistemas de mapeo y geolocalización'
+            };
+            return info[category] || '';
+        }
 
     </script>
 </body>
