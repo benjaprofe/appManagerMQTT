@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control - Estación de Mascotas</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #4ecdc4;
+            --accent: #ffe66d;
+            --dark: #2d3436;
+            --light: #dfe6e9;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --font-main: 'Poppins', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--dark);
+            margin-bottom: 15px;
+            font-size: 2.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        h1 i {
+            color: var(--primary);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #636e72;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 25px;
+            border-radius: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .status.connected {
+            background: rgba(0, 184, 148, 0.1);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+
+        .status.disconnected {
+            background: rgba(214, 48, 49, 0.1);
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .control-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .control-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .control-card h3 {
+            margin-bottom: 20px;
+            color: var(--dark);
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #ff5252;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #00a383;
+            box-shadow: 0 5px 15px rgba(0, 184, 148, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #3dbdb3;
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #fcbb4d;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #dfe6e9;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: var(--font-main);
+            transition: border 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .info-box {
+            background: rgba(78, 205, 196, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #2d3436;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .notification {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            background: var(--success);
+            color: white;
+            padding: 18px 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            display: none;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            display: block;
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .notification.warning {
+            background: var(--warning);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .time-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .featured-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, var(--primary) 0%, #ff8787 100%);
+            color: white;
+        }
+
+        .featured-card h3 {
+            color: white;
+        }
+
+        .featured-card .info-box {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-left-color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>
+            <i class="fa-solid fa-paw"></i>
+            Panel de Control - Estación de Mascotas
+        </h1>
+        <p class="subtitle">Gestiona la alimentación y cuidado de tu mascota</p>
+
+        <div id="status" class="status disconnected">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            Desconectado
+        </div>
+
+        <div id="notification" class="notification"></div>
+
+        <div class="controls-grid">
+            <!-- Dispensador de Comida -->
+            <div class="control-card featured-card">
+                <h3><i class="fa-solid fa-bowl-food"></i> Dispensador de Comida</h3>
+                <button class="btn btn-primary" onclick="activarDispensador()">
+                    <i class="fa-solid fa-utensils"></i>
+                    Dispensar Comida Ahora
+                </button>
+                <div class="input-group">
+                    <label>Cantidad (gramos)</label>
+                    <input type="number" id="food-amount" value="50" min="10" max="200">
+                </div>
+                <div class="info-box">
+                    <i class="fa-solid fa-info-circle"></i>
+                    Dispensa la cantidad seleccionada de comida en el tazón
+                </div>
+            </div>
+
+            <!-- Nivel de Comida -->
+            <div class="control-card">
+                <h3><i class="fa-solid fa-weight-scale"></i> Nivel de Comida</h3>
+                <div class="input-group">
+                    <label>Comida restante (gramos)</label>
+                    <input type="number" id="food-level" value="0" min="0" max="500">
+                </div>
+                <button class="btn btn-success" onclick="actualizarComida()">
+                    <i class="fa-solid fa-sync"></i>
+                    Actualizar Nivel
+                </button>
+                <button class="btn btn-warning" onclick="resetearComida()">
+                    <i class="fa-solid fa-redo"></i>
+                    Resetear (500g)
+                </button>
+            </div>
+
+            <!-- Nivel de Agua -->
+            <div class="control-card">
+                <h3><i class="fa-solid fa-droplet"></i> Nivel de Agua</h3>
+                <div class="input-group">
+                    <label>Agua restante (ml)</label>
+                    <input type="number" id="water-level" value="0" min="0" max="1000">
+                </div>
+                <button class="btn btn-secondary" onclick="actualizarAgua()">
+                    <i class="fa-solid fa-sync"></i>
+                    Actualizar Nivel
+                </button>
+                <button class="btn btn-warning" onclick="resetearAgua()">
+                    <i class="fa-solid fa-redo"></i>
+                    Resetear (1000ml)
+                </button>
+            </div>
+
+            <!-- Actividad -->
+            <div class="control-card">
+                <h3><i class="fa-solid fa-heart-pulse"></i> Actividad del Animal</h3>
+                <div class="input-group">
+                    <label>Nivel de actividad</label>
+                    <select id="activity-level">
+                        <option value="baja">Baja (Descansando)</option>
+                        <option value="media">Media (Caminando)</option>
+                        <option value="alta">Alta (Jugando)</option>
+                    </select>
+                </div>
+                <button class="btn btn-success" onclick="actualizarActividad()">
+                    <i class="fa-solid fa-running"></i>
+                    Actualizar Actividad
+                </button>
+                <div class="info-box">
+                    Simula el nivel de movimiento detectado
+                </div>
+            </div>
+
+            <!-- Horario de Alimentación -->
+            <div class="control-card">
+                <h3><i class="fa-solid fa-clock"></i> Horario de Alimentación</h3>
+                <div class="input-group">
+                    <label>Hora de alimentación</label>
+                    <div class="time-selector">
+                        <input type="time" id="feeding-time-1" value="08:00">
+                        <input type="time" id="feeding-time-2" value="18:00">
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="configurarHorario()">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    Guardar Horario
+                </button>
+                <div class="info-box">
+                    Configura los horarios automáticos de alimentación
+                </div>
+            </div>
+
+            <!-- Acciones Rápidas -->
+            <div class="control-card">
+                <h3><i class="fa-solid fa-bolt"></i> Acciones Rápidas</h3>
+                <button class="btn btn-success" onclick="rellenarTodo()">
+                    <i class="fa-solid fa-fill"></i>
+                    Rellenar Todo
+                </button>
+                <button class="btn btn-warning" onclick="resetearTodo()">
+                    <i class="fa-solid fa-redo-alt"></i>
+                    Resetear Sistema
+                </button>
+                <div class="info-box">
+                    Resetea comida a 500g y agua a 1000ml
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_cristobal');
+
+        client.on("connect", () => {
+            console.log("Panel de Control conectado!");
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-check-circle"></i> Conectado';
+            document.getElementById("status").className = "status connected";
+            showNotification("✅ Conectado a MQTT", "success");
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Error';
+            document.getElementById("status").className = "status disconnected";
+            showNotification("❌ Error de conexión", "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Desconectado';
+            document.getElementById("status").className = "status disconnected";
+            showNotification("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        function publish(topic, value, description) {
+            if (!client.connected) {
+                showNotification("❌ No conectado a MQTT", "error");
+                return;
+            }
+
+            client.publish(topic, value, { qos: 1 }, (err) => {
+                if (err) {
+                    console.error(`Error publicando ${topic}:`, err);
+                    showNotification(`❌ Error: ${description}`, "error");
+                } else {
+                    console.log(`✅ Publicado: ${topic} = ${value}`);
+                    showNotification(`✅ ${description}`, "success");
+                }
+            });
+        }
+
+        function showNotification(message, type = "success") {
+            const notification = document.getElementById("notification");
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        // === FUNCIONES DE CONTROL ===
+
+        function activarDispensador() {
+            const amount = document.getElementById('food-amount').value;
+            if (confirm(`¿Dispensar ${amount}g de comida?`)) {
+                publish("mascotas/cristobal/dispensador/activar", amount, `Dispensando ${amount}g de comida`);
+                publish("mascotas/cristobal/dispensador/estado", "activado", "Dispensador activado");
+            }
+        }
+
+        function actualizarComida() {
+            const level = document.getElementById('food-level').value;
+            publish("mascotas/cristobal/comida/nivel", level, `Nivel de comida actualizado: ${level}g`);
+        }
+
+        function resetearComida() {
+            document.getElementById('food-level').value = 500;
+            publish("mascotas/cristobal/comida/nivel", "500", "Comida reseteada a 500g");
+        }
+
+        function actualizarAgua() {
+            const level = document.getElementById('water-level').value;
+            publish("mascotas/cristobal/agua/nivel", level, `Nivel de agua actualizado: ${level}ml`);
+        }
+
+        function resetearAgua() {
+            document.getElementById('water-level').value = 1000;
+            publish("mascotas/cristobal/agua/nivel", "1000", "Agua reseteada a 1000ml");
+        }
+
+        function actualizarActividad() {
+            const activity = document.getElementById('activity-level').value;
+            publish("mascotas/cristobal/actividad/estado", activity, `Actividad actualizada: ${activity}`);
+        }
+
+        function configurarHorario() {
+            const time1 = document.getElementById('feeding-time-1').value;
+            const time2 = document.getElementById('feeding-time-2').value;
+            const horario = JSON.stringify({ horario1: time1, horario2: time2 });
+            publish("mascotas/cristobal/horario/configurar", horario, `Horarios configurados: ${time1} y ${time2}`);
+            publish("mascotas/cristobal/horario/estado", "configurado", "Horario guardado");
+        }
+
+        function rellenarTodo() {
+            if (confirm('¿Rellenar comida y agua al máximo?')) {
+                resetearComida();
+                resetearAgua();
+                showNotification("✅ Sistema rellenado completamente", "success");
+            }
+        }
+
+        function resetearTodo() {
+            if (confirm('¿Resetear todo el sistema?')) {
+                resetearComida();
+                resetearAgua();
+                document.getElementById('activity-level').value = 'baja';
+                actualizarActividad();
+                showNotification("✅ Sistema reseteado", "success");
+            }
+        }
+    </script>
+</body>
+
+</html>

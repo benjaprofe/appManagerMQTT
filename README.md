@@ -165,6 +165,33 @@ Sistema para controlar y monitorear un sistema de transporte público (metro/tre
 - `metro/estacion1/alarma` - Alarma de la estación
 - `metro/sistema/modo` - Modo de operación del sistema
 
+### 3. Sistema de Seguridad de Celular
+
+Sistema de monitoreo y seguridad en tiempo real para dispositivos móviles.
+
+**Características:**
+- Geolocalización en tiempo real
+- Detección de movimiento
+- Botón de pánico
+- Monitoreo de actividad
+- Mapa en vivo de ubicación
+- Historial de ubicaciones
+- Estado de conexión del dispositivo
+
+**Archivos:**
+- `duran/control.html` - Panel de control
+- `duran/dashboard.html` - Dashboard de monitoreo con mapa
+- `duran/INSTRUCCIONES.md` - Documentación detallada
+
+**Topics MQTT principales:**
+- `seguridad/celular/geolocalizacion/set` - Control de GPS
+- `seguridad/celular/ubicacion` - Coordenadas del dispositivo
+- `seguridad/celular/movimiento/set` - Control de detección de movimiento
+- `seguridad/celular/movimiento/estado` - Estado de movimiento
+- `seguridad/celular/panico` - Botón de pánico
+- `seguridad/celular/dispositivo/estado` - Estado de conexión
+- `seguridad/celular/monitoreo/set` - Control de monitoreo
+
 ---
 
 ## 🔌 Arquitectura MQTT
@@ -266,6 +293,7 @@ Sistema para controlar y monitorear un sistema de transporte público (metro/tre
 
 - [Instrucciones del Proyecto Hogar](hogar/INSTRUCCIONES.md)
 - [Instrucciones del Proyecto Tren](tren/INSTRUCCIONES.md)
+- [Instrucciones del Proyecto Seguridad de Celular](duran/INSTRUCCIONES.md)
 
 ---
 

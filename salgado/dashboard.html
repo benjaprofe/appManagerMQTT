@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Tienda Inteligente</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --font-main: 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-title i {
+            font-size: 2.5em;
+            color: var(--primary);
+        }
+
+        h1 {
+            font-size: 2em;
+            color: var(--dark);
+        }
+
+        .status {
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status.connected {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+
+        .status.disconnected {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 2px solid var(--danger);
+            animation: pulse 2s infinite;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+        }
+
+        .icon-access {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .icon-temp {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .icon-light {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .icon-alarm {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .status-indicator {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .status-indicator.active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+
+        .status-indicator.inactive {
+            background: rgba(107, 114, 128, 0.1);
+            color: #6b7280;
+            border: 2px solid #d1d5db;
+        }
+
+        .status-indicator.alert {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 2px solid var(--danger);
+            animation: pulse-red 1s infinite;
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            text-align: center;
+            margin: 15px 0;
+            color: var(--primary);
+        }
+
+        .cajas-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .caja-item {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .caja-item:hover {
+            transform: scale(1.05);
+        }
+
+        .caja-item.activa {
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid var(--success);
+            color: var(--success);
+        }
+
+        .caja-item.inactiva {
+            background: rgba(107, 114, 128, 0.1);
+            border: 2px solid #d1d5db;
+            color: #6b7280;
+        }
+
+        .inventory-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .inventory-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f9fafb;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .inventory-item.low-stock {
+            border-left-color: var(--danger);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .stock-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .stock-ok {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stock-low {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .logs-container {
+            grid-column: 1 / -1;
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 12px;
+            margin: 8px 0;
+            background: #f9fafb;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            font-size: 0.9em;
+        }
+
+        .log-entry.warning {
+            border-left-color: var(--warning);
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .log-entry.error {
+            border-left-color: var(--danger);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .timestamp {
+            color: #9ca3af;
+            font-size: 0.85em;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        .wide-card {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+
+            .cajas-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-title">
+                <i class="fa-solid fa-store"></i>
+                <div>
+                    <h1>Tienda Inteligente</h1>
+                    <p style="color: #6b7280; font-size: 0.9em;">Sistema de Monitoreo y Control</p>
+                </div>
+            </div>
+            <div id="status" class="status disconnected">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                Desconectado
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Control de Acceso -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-door-open"></i>
+                        Control de Acceso
+                    </div>
+                    <div class="card-icon icon-access">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                </div>
+                <div class="status-indicator" id="puerta-status">
+                    <i class="fa-solid fa-door-closed"></i> CERRADA
+                </div>
+                <div class="status-indicator" id="modo-nocturno">
+                    <i class="fa-solid fa-moon"></i> Modo Normal
+                </div>
+            </div>
+
+            <!-- Temperatura y Humedad -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-temperature-half"></i>
+                        Ambiente
+                    </div>
+                    <div class="card-icon icon-temp">
+                        <i class="fa-solid fa-cloud"></i>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="margin: 15px 0;">
+                        <i class="fa-solid fa-thermometer-half" style="color: var(--warning);"></i>
+                        <div class="metric-value" id="temperatura" style="font-size: 2em;">--°C</div>
+                    </div>
+                    <div style="margin: 15px 0;">
+                        <i class="fa-solid fa-droplet" style="color: var(--primary);"></i>
+                        <div class="metric-value" id="humedad" style="font-size: 2em;">--%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Iluminación -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        Iluminación
+                    </div>
+                    <div class="card-icon icon-light">
+                        <i class="fa-solid fa-sun"></i>
+                    </div>
+                </div>
+                <div class="status-indicator" id="luces-status">
+                    <i class="fa-solid fa-lightbulb"></i> APAGADAS
+                </div>
+            </div>
+
+            <!-- Ventilación -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-fan"></i>
+                        Ventilación
+                    </div>
+                    <div class="card-icon icon-access">
+                        <i class="fa-solid fa-wind"></i>
+                    </div>
+                </div>
+                <div class="status-indicator" id="ventilacion-status">
+                    <i class="fa-solid fa-fan"></i> APAGADA
+                </div>
+            </div>
+
+            <!-- Alarmas -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-bell"></i>
+                        Sistema de Alarmas
+                    </div>
+                    <div class="card-icon icon-alarm">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                </div>
+                <div class="status-indicator" id="alarma-panico">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Pánico: Normal
+                </div>
+                <div class="status-indicator" id="alarma-emergencia">
+                    <i class="fa-solid fa-siren-on"></i> Emergencia: Normal
+                </div>
+            </div>
+
+            <!-- Cajas Registradoras -->
+            <div class="card wide-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-cash-register"></i>
+                        Cajas Registradoras (10)
+                    </div>
+                </div>
+                <div class="cajas-grid" id="cajas-grid">
+                    <!-- Generado por JS -->
+                </div>
+                <p style="margin-top: 15px; text-align: center; color: #6b7280; font-size: 0.9em;">
+                    Click en una caja para ver detalles
+                </p>
+            </div>
+
+            <!-- Inventario -->
+            <div class="card wide-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        Alertas de Inventario
+                    </div>
+                </div>
+                <div class="inventory-list" id="inventory-list">
+                    <p style="text-align: center; color: #6b7280; padding: 20px;">
+                        No hay alertas de inventario
+                    </p>
+                </div>
+            </div>
+
+            <!-- Logs -->
+            <div class="logs-container">
+                <h2 style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-list" style="color: var(--primary);"></i>
+                    Registro de Eventos
+                </h2>
+                <div id="logs"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_salgado');
+
+        // Estado de la tienda
+        let storeState = {
+            puerta: 'cerrada',
+            modoNocturno: false,
+            temperatura: 0,
+            humedad: 0,
+            luces: 'apagadas',
+            ventilacion: 'apagada',
+            alarmaPanico: false,
+            alarmaEmergencia: false,
+            cajas: {},
+            inventario: []
+        };
+
+        // Inicializar cajas
+        function initCajas() {
+            const grid = document.getElementById('cajas-grid');
+            for (let i = 1; i <= 10; i++) {
+                const caja = document.createElement('div');
+                caja.className = 'caja-item inactiva';
+                caja.id = `caja-${i}`;
+                caja.innerHTML = `<i class="fa-solid fa-cash-register"></i><br>Caja ${i}`;
+                caja.onclick = () => showCajaDetails(i);
+                grid.appendChild(caja);
+                storeState.cajas[i] = { activa: false, ventas: 0 };
+            }
+        }
+
+        function showCajaDetails(id) {
+            const caja = storeState.cajas[id];
+            alert(`Caja ${id}\nEstado: ${caja.activa ? 'Activa' : 'Inactiva'}\nVentas: $${caja.ventas}`);
+        }
+
+        // Conexión MQTT
+        client.on("connect", () => {
+            console.log("✅ Dashboard conectado a MQTT!");
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-check-circle"></i> Conectado';
+            document.getElementById("status").className = "status connected";
+            addLog("✅ Conectado a MQTT", "success");
+
+            // Suscribirse a topics
+            const topics = [
+                "tienda/salgado/acceso/puerta",
+                "tienda/salgado/acceso/modo",
+                "tienda/salgado/ambiente/temperatura",
+                "tienda/salgado/ambiente/humedad",
+                "tienda/salgado/iluminacion/estado",
+                "tienda/salgado/ventilacion/estado",
+                "tienda/salgado/alarma/panico",
+                "tienda/salgado/alarma/emergencia",
+                "tienda/salgado/caja/+/estado",
+                "tienda/salgado/caja/+/venta",
+                "tienda/salgado/inventario/alerta",
+                "tienda/salgado/#"
+            ];
+
+            topics.forEach((topic, index) => {
+                setTimeout(() => {
+                    client.subscribe(topic, { qos: 1 }, (err) => {
+                        if (!err) {
+                            console.log(`✅ Suscrito a: ${topic}`);
+                            addLog(`✅ Suscrito: ${topic}`, "success");
+                        }
+                    });
+                }, index * 100);
+            });
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Error';
+            document.getElementById("status").className = "status disconnected";
+            addLog("Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Desconectado';
+            document.getElementById("status").className = "status disconnected";
+            addLog("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        client.on("message", (topic, message) => {
+            const msg = message.toString();
+            console.log(`📨 ${topic}: ${msg}`);
+            updateDashboard(topic, msg);
+            addLog(`${topic}: ${msg}`, "info");
+        });
+
+        function updateDashboard(topic, value) {
+            // Puerta
+            if (topic.includes('/acceso/puerta')) {
+                storeState.puerta = value;
+                const el = document.getElementById('puerta-status');
+                if (value === 'abierta') {
+                    el.className = 'status-indicator active';
+                    el.innerHTML = '<i class="fa-solid fa-door-open"></i> ABIERTA';
+                } else {
+                    el.className = 'status-indicator inactive';
+                    el.innerHTML = '<i class="fa-solid fa-door-closed"></i> CERRADA';
+                }
+            }
+
+            // Modo Nocturno
+            if (topic.includes('/acceso/modo')) {
+                storeState.modoNocturno = value === 'nocturno';
+                const el = document.getElementById('modo-nocturno');
+                if (value === 'nocturno') {
+                    el.className = 'status-indicator active';
+                    el.innerHTML = '<i class="fa-solid fa-moon"></i> Modo Nocturno';
+                } else {
+                    el.className = 'status-indicator inactive';
+                    el.innerHTML = '<i class="fa-solid fa-sun"></i> Modo Normal';
+                }
+            }
+
+            // Temperatura
+            if (topic.includes('/ambiente/temperatura')) {
+                storeState.temperatura = parseFloat(value);
+                document.getElementById('temperatura').textContent = `${value}°C`;
+            }
+
+            // Humedad
+            if (topic.includes('/ambiente/humedad')) {
+                storeState.humedad = parseFloat(value);
+                document.getElementById('humedad').textContent = `${value}%`;
+            }
+
+            // Iluminación
+            if (topic.includes('/iluminacion/estado')) {
+                storeState.luces = value;
+                const el = document.getElementById('luces-status');
+                if (value === 'encendidas') {
+                    el.className = 'status-indicator active';
+                    el.innerHTML = '<i class="fa-solid fa-lightbulb"></i> ENCENDIDAS';
+                } else {
+                    el.className = 'status-indicator inactive';
+                    el.innerHTML = '<i class="fa-solid fa-lightbulb"></i> APAGADAS';
+                }
+            }
+
+            // Ventilación
+            if (topic.includes('/ventilacion/estado')) {
+                storeState.ventilacion = value;
+                const el = document.getElementById('ventilacion-status');
+                if (value === 'encendida') {
+                    el.className = 'status-indicator active';
+                    el.innerHTML = '<i class="fa-solid fa-fan fa-spin"></i> ENCENDIDA';
+                } else {
+                    el.className = 'status-indicator inactive';
+                    el.innerHTML = '<i class="fa-solid fa-fan"></i> APAGADA';
+                }
+            }
+
+            // Alarma de Pánico
+            if (topic.includes('/alarma/panico')) {
+                storeState.alarmaPanico = value === 'activada';
+                const el = document.getElementById('alarma-panico');
+                if (value === 'activada') {
+                    el.className = 'status-indicator alert';
+                    el.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> PÁNICO ACTIVADO';
+                    addLog('🚨 ALARMA DE PÁNICO ACTIVADA', 'error');
+                } else {
+                    el.className = 'status-indicator inactive';
+                    el.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Pánico: Normal';
+                }
+            }
+
+            // Alarma de Emergencia
+            if (topic.includes('/alarma/emergencia')) {
+                storeState.alarmaEmergencia = value === 'activada';
+                const el = document.getElementById('alarma-emergencia');
+                if (value === 'activada') {
+                    el.className = 'status-indicator alert';
+                    el.innerHTML = '<i class="fa-solid fa-siren-on"></i> EMERGENCIA ACTIVADA';
+                    addLog('🚨 SISTEMA DE EMERGENCIA ACTIVADO', 'error');
+                } else {
+                    el.className = 'status-indicator inactive';
+                    el.innerHTML = '<i class="fa-solid fa-siren-on"></i> Emergencia: Normal';
+                }
+            }
+
+            // Cajas - Estado
+            if (topic.includes('/caja/') && topic.includes('/estado')) {
+                const cajaId = topic.split('/')[3];
+                const el = document.getElementById(`caja-${cajaId}`);
+                if (el) {
+                    if (value === 'activa') {
+                        el.className = 'caja-item activa';
+                        storeState.cajas[cajaId].activa = true;
+                    } else {
+                        el.className = 'caja-item inactiva';
+                        storeState.cajas[cajaId].activa = false;
+                    }
+                }
+            }
+
+            // Cajas - Venta
+            if (topic.includes('/caja/') && topic.includes('/venta')) {
+                const cajaId = topic.split('/')[3];
+                const monto = parseFloat(value);
+                storeState.cajas[cajaId].ventas += monto;
+                addLog(`💰 Venta en Caja ${cajaId}: $${monto}`, 'success');
+            }
+
+            // Inventario
+            if (topic.includes('/inventario/alerta')) {
+                try {
+                    const data = JSON.parse(value);
+                    addInventoryAlert(data);
+                } catch (e) {
+                    console.error('Error parseando inventario:', e);
+                }
+            }
+        }
+
+        function addInventoryAlert(data) {
+            const list = document.getElementById('inventory-list');
+            if (list.querySelector('p')) list.innerHTML = '';
+
+            const item = document.createElement('div');
+            item.className = 'inventory-item low-stock';
+            item.innerHTML = `
+                <div>
+                    <strong>${data.producto}</strong>
+                    <p style="font-size: 0.9em; color: #6b7280; margin-top: 5px;">
+                        Stock actual: ${data.stock} | Mínimo: ${data.minimo}
+                    </p>
+                </div>
+                <span class="stock-badge stock-low">
+                    <i class="fa-solid fa-exclamation-triangle"></i> Stock Bajo
+                </span>
+            `;
+            list.insertBefore(item, list.firstChild);
+
+            // Limitar a 10 alertas
+            while (list.children.length > 10) {
+                list.removeChild(list.lastChild);
+            }
+
+            addLog(`⚠️ Stock bajo: ${data.producto} (${data.stock} unidades)`, 'warning');
+        }
+
+        function addLog(message, type = 'info') {
+            const logsContainer = document.getElementById("logs");
+            const logEntry = document.createElement("div");
+            logEntry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+
+            while (logsContainer.children.length > 30) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+
+        // Inicializar
+        window.addEventListener('load', () => {
+            initCajas();
+        });
+    </script>
+</body>
+
+</html>

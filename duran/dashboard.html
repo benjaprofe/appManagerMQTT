@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Seguridad Celular</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .status.connected {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4caf50;
+        }
+
+        .status.disconnected {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .map-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            height: 600px;
+        }
+
+        .map-container h2 {
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        #map {
+            height: calc(100% - 60px);
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .sensors-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sensor-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        .sensor-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .sensor-card h3 {
+            margin-bottom: 12px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sensor-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+            transition: all 0.3s;
+        }
+
+        .sensor-value.active {
+            color: #4caf50;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .sensor-value.inactive {
+            color: #95a5a6;
+        }
+
+        .sensor-value.alert {
+            color: #e74c3c;
+            animation: blink 1s infinite;
+        }
+
+        .sensor-value.warning {
+            color: #f39c12;
+        }
+
+        .sensor-value.conectado {
+            color: #4caf50;
+        }
+
+        .sensor-value.desconectado {
+            color: #e74c3c;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .location-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .location-info div {
+            margin: 5px 0;
+        }
+
+        .logs-container {
+            grid-column: 1 / -1;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .logs-container h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .log-entry {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .log-entry.error {
+            border-left-color: #f44336;
+        }
+
+        .log-entry.warning {
+            border-left-color: #ff9800;
+        }
+
+        .log-entry.alert {
+            border-left-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.2);
+            font-weight: bold;
+        }
+
+        .timestamp {
+            color: #aaa;
+            font-size: 0.8em;
+        }
+
+        .historial-container {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .historial-container h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .historial-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .historial-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .historial-item:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .alert-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #e74c3c;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            z-index: 2000;
+            display: none;
+            animation: pulse-banner 1s infinite;
+        }
+
+        .alert-banner.show {
+            display: block;
+        }
+
+        @keyframes pulse-banner {
+
+            0%,
+            100% {
+                background: #e74c3c;
+            }
+
+            50% {
+                background: #c0392b;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="alertBanner" class="alert-banner">
+        🚨 ALERTA DE PÁNICO ACTIVADA 🚨
+    </div>
+
+    <div class="container">
+        <h1>📊 Dashboard - Seguridad Celular</h1>
+        <div id="status" class="status disconnected">Desconectado</div>
+
+        <div class="dashboard-grid">
+            <!-- Mapa en Vivo -->
+            <div class="map-container">
+                <h2>🗺️ Ubicación en Tiempo Real</h2>
+                <div id="map"></div>
+            </div>
+
+            <!-- Panel de Sensores -->
+            <div class="sensors-panel">
+                <!-- Estado del Dispositivo -->
+                <div class="sensor-card">
+                    <h3>📱 Estado del Dispositivo</h3>
+                    <div id="dispositivo-estado" class="sensor-value desconectado">DESCONECTADO</div>
+                </div>
+
+                <!-- Geolocalización -->
+                <div class="sensor-card">
+                    <h3>📍 Geolocalización</h3>
+                    <div id="geolocalizacion" class="sensor-value inactive">INACTIVA</div>
+                    <div class="location-info" id="location-info">
+                        <div><strong>Latitud:</strong> <span id="lat">--</span></div>
+                        <div><strong>Longitud:</strong> <span id="lng">--</span></div>
+                        <div><strong>Última actualización:</strong> <span id="last-update">--</span></div>
+                    </div>
+                </div>
+
+                <!-- Detección de Movimiento -->
+                <div class="sensor-card">
+                    <h3>🏃 Detección de Movimiento</h3>
+                    <div id="movimiento-deteccion" class="sensor-value inactive">INACTIVA</div>
+                    <div id="movimiento-estado" class="sensor-value inactive">Sin movimiento</div>
+                </div>
+
+                <!-- Monitoreo de Actividad -->
+                <div class="sensor-card">
+                    <h3>📊 Monitoreo de Actividad</h3>
+                    <div id="monitoreo" class="sensor-value inactive">INACTIVO</div>
+                </div>
+
+                <!-- Botón de Pánico -->
+                <div class="sensor-card">
+                    <h3>🚨 Botón de Pánico</h3>
+                    <div id="panico" class="sensor-value inactive">NORMAL</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial Simple -->
+        <div class="historial-container">
+            <h3>📜 Historial de Ubicaciones</h3>
+            <div id="historial" class="historial-list"></div>
+        </div>
+
+        <!-- Logs en tiempo real -->
+        <div class="logs-container">
+            <h3>📝 Logs de Eventos en Tiempo Real</h3>
+            <div id="logs"></div>
+        </div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_duran');
+
+        // Inicializar el mapa
+        let map;
+        let marker;
+        let historialMarkers = [];
+        let ubicacionesHistorial = [];
+
+        function initMap() {
+            // Coordenadas iniciales: Santiago, Chile
+            const defaultLat = -33.4489;
+            const defaultLng = -70.6693;
+
+            map = L.map('map').setView([defaultLat, defaultLng], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Marcador inicial
+            marker = L.marker([defaultLat, defaultLng]).addTo(map)
+                .bindPopup('Ubicación inicial')
+                .openPopup();
+        }
+
+        // Inicializar mapa al cargar
+        window.addEventListener('load', () => {
+            initMap();
+        });
+
+        client.on("connect", () => {
+            console.log("✅ Dashboard conectado a MQTT!");
+            document.getElementById("status").textContent = "✅ Conectado";
+            document.getElementById("status").className = "status connected";
+            addLog("✅ Conectado a MQTT", "success");
+
+            // Suscribirse a todos los topics
+            const topics = [
+                "seguridad/celular/geolocalizacion/set",
+                "seguridad/celular/geolocalizacion/state",
+                "seguridad/celular/ubicacion",
+                "seguridad/celular/movimiento/set",
+                "seguridad/celular/movimiento/state",
+                "seguridad/celular/movimiento/estado",
+                "seguridad/celular/monitoreo/set",
+                "seguridad/celular/monitoreo/state",
+                "seguridad/celular/panico",
+                "seguridad/celular/dispositivo/estado",
+                "seguridad/celular/historial/clear",
+                "seguridad/celular/historial/request",
+                "seguridad/celular/#"
+            ];
+
+            topics.forEach((topic, index) => {
+                setTimeout(() => {
+                    client.subscribe(topic, { qos: 1 }, (err) => {
+                        if (err) {
+                            console.error(`❌ Error suscribiéndose a ${topic}:`, err);
+                            addLog(`❌ Error: ${topic}`, "error");
+                        } else {
+                            console.log(`✅ Suscrito a: ${topic}`);
+                            addLog(`✅ Suscrito: ${topic}`, "success");
+                        }
+                    });
+                }, index * 100);
+            });
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").textContent = "❌ Error de conexión";
+            document.getElementById("status").className = "status disconnected";
+            addLog("Error de conexión: " + error, "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").textContent = "❌ Desconectado";
+            document.getElementById("status").className = "status disconnected";
+            addLog("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        client.on("message", (topic, message) => {
+            const msg = message.toString();
+            console.log(`📨 Mensaje recibido: ${topic} = ${msg}`);
+
+            updateSensor(topic, msg);
+            addLog(`${topic}: ${msg}`, "info");
+        });
+
+        function updateSensor(topic, value) {
+            // Geolocalización
+            if (topic === "seguridad/celular/geolocalizacion/set" || topic === "seguridad/celular/geolocalizacion/state") {
+                const element = document.getElementById("geolocalizacion");
+                if (value === "on") {
+                    element.textContent = "ACTIVA";
+                    element.className = "sensor-value active";
+                } else {
+                    element.textContent = "INACTIVA";
+                    element.className = "sensor-value inactive";
+                }
+            }
+
+            // Ubicación
+            if (topic === "seguridad/celular/ubicacion") {
+                try {
+                    const ubicacion = JSON.parse(value);
+                    actualizarUbicacion(ubicacion.lat, ubicacion.lng);
+                    agregarAlHistorial(ubicacion.lat, ubicacion.lng);
+                } catch (e) {
+                    console.error("Error parseando ubicación:", e);
+                }
+            }
+
+            // Detección de Movimiento (activación/desactivación)
+            if (topic === "seguridad/celular/movimiento/set" || topic === "seguridad/celular/movimiento/state") {
+                const element = document.getElementById("movimiento-deteccion");
+                if (value === "on") {
+                    element.textContent = "ACTIVA";
+                    element.className = "sensor-value active";
+                } else {
+                    element.textContent = "INACTIVA";
+                    element.className = "sensor-value inactive";
+                }
+            }
+
+            // Estado de Movimiento (detectado/no detectado)
+            if (topic === "seguridad/celular/movimiento/estado") {
+                const element = document.getElementById("movimiento-estado");
+                if (value === "detectado") {
+                    element.textContent = "MOVIMIENTO DETECTADO";
+                    element.className = "sensor-value warning";
+                    addLog("⚠️ Movimiento detectado en el dispositivo", "warning");
+                } else {
+                    element.textContent = "Sin movimiento";
+                    element.className = "sensor-value inactive";
+                }
+            }
+
+            // Monitoreo de Actividad
+            if (topic === "seguridad/celular/monitoreo/set" || topic === "seguridad/celular/monitoreo/state") {
+                const element = document.getElementById("monitoreo");
+                if (value === "on") {
+                    element.textContent = "ACTIVO";
+                    element.className = "sensor-value active";
+                } else {
+                    element.textContent = "CONECTADO";
+                    element.className = "sensor-value conectado";
+                } else {
+                    element.textContent = "DESCONECTADO";
+                    element.className = "sensor-value desconectado";
+                }
+            }
+
+            // Historial
+            if (topic === "seguridad/celular/historial/clear") {
+                limpiarHistorial();
+            }
+
+            if (topic === "seguridad/celular/historial/request") {
+                mostrarHistorial();
+            }
+        }
+
+        function actualizarUbicacion(lat, lng) {
+            // Actualizar información de ubicación
+            document.getElementById("lat").textContent = lat.toFixed(6);
+            document.getElementById("lng").textContent = lng.toFixed(6);
+            document.getElementById("last-update").textContent = new Date().toLocaleString();
+
+            // Actualizar marcador en el mapa
+            if (marker) {
+                map.removeLayer(marker);
+            }
+
+            marker = L.marker([lat, lng]).addTo(map)
+                .bindPopup(`<b>Ubicación Actual</b><br>Lat: ${lat}<br>Lng: ${lng}`)
+                .openPopup();
+
+            map.setView([lat, lng], 15);
+
+            addLog(`📍 Ubicación actualizada: ${lat}, ${lng}`, "success");
+        }
+
+        function agregarAlHistorial(lat, lng) {
+            const timestamp = new Date().toLocaleString();
+            ubicacionesHistorial.unshift({ lat, lng, timestamp });
+
+            // Limitar a 20 ubicaciones
+            if (ubicacionesHistorial.length > 20) {
+                ubicacionesHistorial.pop();
+            }
+
+            mostrarHistorial();
+
+            // Agregar marcador histórico al mapa
+            const historicalMarker = L.circleMarker([lat, lng], {
+                radius: 5,
+                fillColor: "#3498db",
+                color: "#2980b9",
+                weight: 1,
+                opacity: 0.8,
+                fillOpacity: 0.6
+            }).addTo(map)
+                .bindPopup(`<b>Historial</b><br>${timestamp}`);
+
+            historialMarkers.push(historicalMarker);
+
+            // Limitar marcadores históricos
+            if (historialMarkers.length > 20) {
+                const oldMarker = historialMarkers.shift();
+                map.removeLayer(oldMarker);
+            }
+        }
+
+        function mostrarHistorial() {
+            const historialDiv = document.getElementById("historial");
+            historialDiv.innerHTML = "";
+
+            if (ubicacionesHistorial.length === 0) {
+                historialDiv.innerHTML = "<div style='text-align: center; padding: 20px; color: #95a5a6;'>No hay ubicaciones en el historial</div>";
+                return;
+            }
+
+            ubicacionesHistorial.forEach((ubicacion, index) => {
+                const item = document.createElement("div");
+                item.className = "historial-item";
+                item.innerHTML = `
+                    <div>
+                        <strong>#${index + 1}</strong> - ${ubicacion.timestamp}
+                    </div>
+                    <div>
+                        📍 ${ubicacion.lat.toFixed(6)}, ${ubicacion.lng.toFixed(6)}
+                    </div>
+                `;
+                historialDiv.appendChild(item);
+            });
+        }
+
+        function limpiarHistorial() {
+            ubicacionesHistorial = [];
+
+            // Limpiar marcadores del mapa
+            historialMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            historialMarkers = [];
+
+            mostrarHistorial();
+            addLog("🗑️ Historial de ubicaciones limpiado", "info");
+        }
+
+        function playAlertSound() {
+            // Intentar reproducir sonido de alerta
+            try {
+                const audio = new Audio('../fx/alarm-26718.mp3');
+                audio.volume = 0.7;
+                audio.play().catch(err => {
+                    console.error('Error al reproducir sonido:', err);
+                });
+            } catch (e) {
+                console.error('Error al crear audio:', e);
+            }
+        }
+
+        function addLog(message, type = 'info') {
+            const logsContainer = document.getElementById("logs");
+            const logEntry = document.createElement("div");
+            logEntry.className = `log-entry ${type}`;
+
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
+
+            // Limitar a 50 logs
+            while (logsContainer.children.length > 50) {
+                logsContainer.removeChild(logsContainer.lastChild);
+            }
+        }
+    </script>
+</body>
+
+</html>

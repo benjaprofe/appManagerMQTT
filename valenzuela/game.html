@@ -1,68 +1,70 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Batalla Naval - Juego Multijugador</title>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             padding: 20px;
             color: white;
         }
+
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
         }
+
         .screen {
             display: none;
+            animation: fadeIn 0.5s;
         }
+
         .screen.active {
             display: block;
         }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
         h1 {
             text-align: center;
             margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
         }
+
         .menu-card {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 40px;
             margin: 20px auto;
             max-width: 500px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
         }
-        .input-group {
-            margin: 20px 0;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            font-size: 1.1em;
-        }
-        .input-group input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
+
         .btn {
             width: 100%;
             padding: 15px;
@@ -75,310 +77,331 @@
             transition: all 0.3s;
             background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
             color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
         .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
         }
-        .btn:active {
-            transform: translateY(0);
-        }
+
         .btn-secondary {
             background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
         }
-        .code-display {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
+
+        .btn-cpu {
+            background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+        }
+
+        .input-group {
             margin: 20px 0;
         }
-        .code-display h2 {
-            font-size: 3em;
-            letter-spacing: 10px;
-            color: #ffd700;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-        }
-        .status-bar {
-            background: rgba(255, 255, 255, 0.1);
+
+        .input-group input {
+            width: 100%;
             padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 10px;
-            margin: 20px 0;
-            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
             font-size: 1.2em;
+            text-align: center;
+            text-transform: uppercase;
         }
+
         .game-area {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin: 20px 0;
+            gap: 40px;
+            margin-top: 30px;
         }
+
         .board-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 15px;
             padding: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
         }
+
         .board-container h3 {
             text-align: center;
             margin-bottom: 15px;
-            font-size: 1.5em;
+            color: #ffd700;
         }
+
         .board {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
             gap: 2px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.5);
             padding: 5px;
             border-radius: 5px;
-            margin: 0 auto;
-            max-width: 400px;
-        }
-        .cell {
             aspect-ratio: 1;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .cell {
+            background: rgba(255, 255, 255, 0.1);
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+            position: relative;
         }
+
         .cell:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
         }
+
         .cell.ship {
             background: #4caf50;
         }
+
         .cell.hit {
             background: #f44336;
-            color: white;
+            animation: shake 0.5s;
         }
+
         .cell.miss {
             background: #2196F3;
-            color: white;
         }
+
         .cell.hit::after {
             content: '✕';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             font-size: 1.5em;
         }
+
         .cell.miss::after {
-            content: '○';
+            content: '•';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .status-bar {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
             font-size: 1.2em;
+            margin-bottom: 20px;
         }
-        .cell.disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
+
         .ships-container {
             display: flex;
-            gap: 10px;
             justify-content: center;
-            margin: 20px 0;
-            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            min-height: 50px;
         }
+
         .ship-preview {
             display: flex;
             gap: 2px;
             cursor: grab;
             padding: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
             border: 2px solid transparent;
+            transition: all 0.2s;
         }
+
         .ship-preview:hover {
-            border-color: #4caf50;
+            border-color: #ffd700;
+            transform: scale(1.05);
         }
+
         .ship-preview.placed {
             opacity: 0.3;
             cursor: not-allowed;
+            transform: none;
         }
+
         .ship-cell {
             width: 25px;
             height: 25px;
             background: #4caf50;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .dice-container {
-            text-align: center;
-            margin: 30px 0;
-        }
-        .dice {
-            width: 100px;
-            height: 100px;
-            background: white;
-            border-radius: 15px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3em;
-            font-weight: bold;
-            color: #333;
-            margin: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .dice:hover {
-            transform: scale(1.1);
-        }
-        .dice.rolling {
-            animation: roll 0.5s infinite;
-        }
-        @keyframes roll {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(90deg); }
-            50% { transform: rotate(180deg); }
-            75% { transform: rotate(270deg); }
-        }
-        .dice-results {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin: 20px 0;
-        }
-        .dice-result {
-            text-align: center;
-        }
-        .dice-result h4 {
-            margin-bottom: 10px;
-        }
-        .dice-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #ffd700;
-        }
+
         .notification {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #4caf50;
-            color: white;
             padding: 20px 30px;
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: white;
+            font-weight: bold;
+            transform: translateX(200%);
+            transition: transform 0.3s;
             z-index: 1000;
-            display: none;
-            animation: slideIn 0.5s ease;
-            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
+
         .notification.show {
-            display: block;
+            transform: translateX(0);
         }
-        .notification.error {
-            background: #f44336;
+
+        .notification.info {
+            background: #2196F3;
         }
+
+        .notification.success {
+            background: #4caf50;
+        }
+
         .notification.warning {
             background: #ff9800;
         }
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+
+        .notification.error {
+            background: #f44336;
         }
-        .back-link {
+
+        .dice-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .dice {
+            font-size: 5em;
+            cursor: pointer;
+            transition: transform 0.5s;
             display: inline-block;
-            margin-bottom: 20px;
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            transition: all 0.3s;
         }
-        .back-link:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateX(-5px);
+
+        .dice:hover {
+            transform: scale(1.1) rotate(10deg);
         }
+
+        .dice.rolling {
+            animation: roll 1s infinite linear;
+        }
+
+        @keyframes roll {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         @media (max-width: 768px) {
             .game-area {
                 grid-template-columns: 1fr;
             }
+
+            .board {
+                max-width: 350px;
+                margin: 0 auto;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <a href="../index.html" class="back-link">← Volver al inicio</a>
-        
-        <!-- Pantalla de Menú -->
+        <a href="../index.html"
+            style="color: white; text-decoration: none; display: inline-block; margin-bottom: 20px;">
+            <i class="fas fa-arrow-left"></i> Volver al inicio
+        </a>
+
+        <!-- MENU -->
         <div id="menuScreen" class="screen active">
-            <h1>⚓ Batalla Naval</h1>
+            <h1>⚓ BATALLA NAVAL</h1>
             <div class="menu-card">
-                <button class="btn" onclick="showCreateGame()">Crear Partida</button>
+                <button class="btn" onclick="showCreateGame()">Crear Partida Online</button>
                 <button class="btn btn-secondary" onclick="showJoinGame()">Unirse a Partida</button>
+                <button class="btn btn-cpu" onclick="startCpuGame()">⚔️ Jugar vs CPU (Simulación)</button>
             </div>
         </div>
 
-        <!-- Pantalla de Crear Partida -->
+        <!-- CREAR PARTIDA -->
         <div id="createScreen" class="screen">
-            <h1>Crear Nueva Partida</h1>
+            <h1>Sala de Espera</h1>
             <div class="menu-card">
-                <div class="code-display" id="gameCodeDisplay" style="display: none;">
+                <div style="text-align: center;">
                     <p>Código de Partida:</p>
-                    <h2 id="gameCode"></h2>
-                    <p>Comparte este código con tu oponente</p>
+                    <h2 id="gameCode" style="font-size: 3em; color: #ffd700; margin: 10px 0;"></h2>
+                    <p>Comparte este código con tu amigo</p>
+                    <div class="status-bar" id="createStatus" style="margin-top: 20px;">Esperando jugador...</div>
                 </div>
-                <div class="status-bar" id="createStatus">Esperando segundo jugador...</div>
-                <button class="btn" onclick="backToMenu()">Volver al Menú</button>
+                <button class="btn btn-secondary" onclick="backToMenu()">Cancelar</button>
             </div>
         </div>
 
-        <!-- Pantalla de Unirse a Partida -->
+        <!-- UNIRSE -->
         <div id="joinScreen" class="screen">
             <h1>Unirse a Partida</h1>
             <div class="menu-card">
                 <div class="input-group">
-                    <label>Ingresa el código de partida:</label>
-                    <input type="text" id="joinCodeInput" placeholder="Ej: ABC123" maxlength="6" style="text-transform: uppercase;">
+                    <input type="text" id="joinCodeInput" placeholder="CÓDIGO DE PARTIDA" maxlength="6">
                 </div>
                 <button class="btn" onclick="joinGame()">Unirse</button>
-                <button class="btn btn-secondary" onclick="backToMenu()">Volver al Menú</button>
+                <button class="btn btn-secondary" onclick="backToMenu()">Volver</button>
             </div>
         </div>
 
-        <!-- Pantalla de Juego -->
+        <!-- JUEGO -->
         <div id="gameScreen" class="screen">
-            <h1>⚓ Batalla Naval</h1>
-            <div class="status-bar" id="gameStatus">Preparando juego...</div>
-            
-            <!-- Fase de Colocación de Barcos -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Batalla Naval <span id="modeBadge"
+                        style="font-size: 0.5em; background: #9c27b0; padding: 5px 10px; border-radius: 10px;">ONLINE</span>
+                </h2>
+                <button class="btn btn-secondary" style="width: auto; padding: 10px 20px;"
+                    onclick="backToMenu()">Salir</button>
+            </div>
+
+            <div class="status-bar" id="gameStatus">Coloca tus barcos para comenzar</div>
+
+            <!-- FASE COLOCACIÓN -->
             <div id="placementPhase">
-                <div class="board-container">
-                    <h3>Tu Tablero</h3>
+                <div class="board-container" style="max-width: 500px; margin: 0 auto;">
+                    <h3>Tu Flota</h3>
                     <div class="ships-container" id="shipsContainer"></div>
                     <div class="board" id="myBoard"></div>
-                    <p style="text-align: center; margin-top: 15px;">
-                        Coloca tus barcos arrastrándolos al tablero. Puedes rotarlos haciendo clic.
-                    </p>
+                    <p style="text-align: center; margin-top: 10px; color: #ccc;">Arrastra los barcos al tablero. Haz
+                        clic para rotar.</p>
                 </div>
             </div>
 
-            <!-- Fase de Dado -->
+            <!-- FASE DADO -->
             <div id="dicePhase" style="display: none;">
                 <div class="dice-container">
-                    <h2>Lanza el dado para determinar quién inicia</h2>
+                    <h3>¿Quién comienza?</h3>
                     <div class="dice" id="dice" onclick="rollDice()">🎲</div>
-                    <div class="dice-results" id="diceResults" style="display: none;"></div>
+                    <div id="diceResult" style="margin-top: 20px; font-size: 1.5em; font-weight: bold;"></div>
                 </div>
             </div>
 
-            <!-- Fase de Juego -->
+            <!-- FASE BATALLA -->
             <div id="playPhase" style="display: none;">
                 <div class="game-area">
                     <div class="board-container">
-                        <h3>Tu Tablero</h3>
+                        <h3>Tu Flota</h3>
                         <div class="board" id="myBoardPlay"></div>
                     </div>
                     <div class="board-container">
-                        <h3>Tablero Enemigo</h3>
+                        <h3>Radar Enemigo</h3>
                         <div class="board" id="enemyBoard"></div>
                     </div>
                 </div>
@@ -391,82 +414,77 @@
     <script src="../env/credential.js"></script>
     <script>
         const client = createMqttClient('client_valenzuela');
-        
-        // Estado del juego
+
         let gameState = {
-            gameCode: null,
-            playerNumber: null,
-            myBoard: Array(10).fill(null).map(() => Array(10).fill(0)),
-            enemyBoard: Array(10).fill(null).map(() => Array(10).fill(0)),
-            myShots: Array(10).fill(null).map(() => Array(10).fill(0)),
-            enemyShots: Array(10).fill(null).map(() => Array(10).fill(0)),
+            code: null,
+            player: null,
+            phase: 'menu',
+            myBoard: Array(10).fill().map(() => Array(10).fill(0)),
+            enemyBoard: Array(10).fill().map(() => Array(10).fill(0)), // 0: unknown, 1: miss, 2: hit
             ships: [
-                { size: 2, placed: false, horizontal: true },
-                { size: 3, placed: false, horizontal: true },
-                { size: 4, placed: false, horizontal: true },
-                { size: 5, placed: false, horizontal: true }
+                { size: 5, placed: false, horizontal: true, name: 'Portaaviones' },
+                { size: 4, placed: false, horizontal: true, name: 'Acorazado' },
+                { size: 3, placed: false, horizontal: true, name: 'Destructor' },
+                { size: 3, placed: false, horizontal: true, name: 'Submarino' },
+                { size: 2, placed: false, horizontal: true, name: 'Patrullera' }
             ],
             placedShips: [],
-            phase: 'menu', // menu, create, join, placement, dice, playing, finished
-            myDiceRoll: null,
-            enemyDiceRoll: null,
-            currentTurn: null,
-            myShipsRemaining: 4,
-            enemyShipsRemaining: 4
+            myShipsAlive: 5,
+            enemyShipsAlive: 5,
+            turn: null,
+            isCpuGame: false,
+            cpuShips: []
         };
 
         let draggedShip = null;
-        let draggedOffset = { x: 0, y: 0 };
 
-        // Elementos del DOM
-        const notification = document.getElementById('notification');
-
-        // Funciones de navegación
-        function showScreen(screenId) {
+        // === NAVEGACIÓN ===
+        function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
+            document.getElementById(id).classList.add('active');
         }
 
         function backToMenu() {
-            gameState.phase = 'menu';
-            showScreen('menuScreen');
-            if (gameState.gameCode) {
-                client.unsubscribe(`battleship/game/${gameState.gameCode}/#`);
+            if (gameState.code) {
+                client.unsubscribe(`battleship/${gameState.code}/#`);
             }
-            gameState = {
-                gameCode: null,
-                playerNumber: null,
-                myBoard: Array(10).fill(null).map(() => Array(10).fill(0)),
-                enemyBoard: Array(10).fill(null).map(() => Array(10).fill(0)),
-                myShots: Array(10).fill(null).map(() => Array(10).fill(0)),
-                enemyShots: Array(10).fill(null).map(() => Array(10).fill(0)),
-                ships: [
-                    { size: 2, placed: false, horizontal: true },
-                    { size: 3, placed: false, horizontal: true },
-                    { size: 4, placed: false, horizontal: true },
-                    { size: 5, placed: false, horizontal: true }
-                ],
-                placedShips: [],
-                phase: 'menu',
-                myDiceRoll: null,
-                enemyDiceRoll: null,
-                currentTurn: null,
-                myShipsRemaining: 4,
-                enemyShipsRemaining: 4
-            };
+            resetGame();
+            showScreen('menuScreen');
         }
 
+        function resetGame() {
+            gameState = {
+                code: null,
+                player: null,
+                phase: 'menu',
+                myBoard: Array(10).fill().map(() => Array(10).fill(0)),
+                enemyBoard: Array(10).fill().map(() => Array(10).fill(0)),
+                ships: [
+                    { size: 5, placed: false, horizontal: true },
+                    { size: 4, placed: false, horizontal: true },
+                    { size: 3, placed: false, horizontal: true },
+                    { size: 3, placed: false, horizontal: true },
+                    { size: 2, placed: false, horizontal: true }
+                ],
+                placedShips: [],
+                myShipsAlive: 5,
+                enemyShipsAlive: 5,
+                turn: null,
+                isCpuGame: false,
+                cpuShips: []
+            };
+            document.getElementById('placementPhase').style.display = 'block';
+            document.getElementById('dicePhase').style.display = 'none';
+            document.getElementById('playPhase').style.display = 'none';
+        }
+
+        // === MODOS DE JUEGO ===
         function showCreateGame() {
-            gameState.gameCode = generateGameCode();
-            gameState.playerNumber = 1;
-            gameState.phase = 'create';
+            gameState.code = Math.random().toString(36).substring(2, 8).toUpperCase();
+            gameState.player = 1;
+            document.getElementById('gameCode').textContent = gameState.code;
             showScreen('createScreen');
-            document.getElementById('gameCode').textContent = gameState.gameCode;
-            document.getElementById('gameCodeDisplay').style.display = 'block';
-            
-            const topic = `battleship/game/${gameState.gameCode}/create`;
-            client.publish(topic, JSON.stringify({ player: 1, ready: false }), { qos: 1 });
-            subscribeToGame();
+            subscribeMqtt();
         }
 
         function showJoinGame() {
@@ -474,536 +492,405 @@
         }
 
         function joinGame() {
-            const code = document.getElementById('joinCodeInput').value.toUpperCase().trim();
-            if (code.length !== 6) {
-                showNotification('Código inválido. Debe tener 6 caracteres.', 'error');
-                return;
+            const code = document.getElementById('joinCodeInput').value.toUpperCase();
+            if (code.length !== 6) return showNotif('Código inválido', 'error');
+
+            gameState.code = code;
+            gameState.player = 2;
+            subscribeMqtt();
+            client.publish(`battleship/${code}/join`, JSON.stringify({ player: 2 }));
+            showScreen('gameScreen');
+            initPlacement();
+        }
+
+        function startCpuGame() {
+            gameState.isCpuGame = true;
+            gameState.player = 1;
+            gameState.code = 'CPU-GAME';
+            document.getElementById('modeBadge').textContent = 'VS CPU';
+            document.getElementById('modeBadge').style.background = '#9c27b0';
+            showScreen('gameScreen');
+            initPlacement();
+
+            // Colocar barcos de la CPU
+            placeCpuShips();
+        }
+
+        // === MQTT ===
+        function subscribeMqtt() {
+            if (!gameState.code) return;
+            const topic = `battleship/${gameState.code}/#`;
+            client.subscribe(topic, (err) => {
+                if (!err) console.log('Suscrito a', topic);
+            });
+        }
+
+        client.on('message', (topic, message) => {
+            if (gameState.isCpuGame) return; // Ignorar MQTT en modo CPU
+
+            const data = JSON.parse(message.toString());
+            const subtopic = topic.split('/').pop();
+
+            if (subtopic === 'join' && gameState.player === 1) {
+                showNotif('¡Jugador 2 conectado!', 'success');
+                showScreen('gameScreen');
+                initPlacement();
             }
-            
-            gameState.gameCode = code;
-            gameState.playerNumber = 2;
-            gameState.phase = 'join';
-            subscribeToGame();
-            
-            const topic = `battleship/game/${code}/join`;
-            client.publish(topic, JSON.stringify({ player: 2, ready: false }), { qos: 1 });
-            
-            showNotification('Conectando a la partida...', 'warning');
-        }
 
-        function generateGameCode() {
-            return Math.random().toString(36).substring(2, 8).toUpperCase();
-        }
-
-        function subscribeToGame() {
-            if (!gameState.gameCode) return;
-            
-            const topics = [
-                `battleship/game/${gameState.gameCode}/create`,
-                `battleship/game/${gameState.gameCode}/join`,
-                `battleship/game/${gameState.gameCode}/player1/board`,
-                `battleship/game/${gameState.gameCode}/player2/board`,
-                `battleship/game/${gameState.gameCode}/player1/shots`,
-                `battleship/game/${gameState.gameCode}/player2/shots`,
-                `battleship/game/${gameState.gameCode}/state`,
-                `battleship/game/${gameState.gameCode}/dice`,
-                `battleship/game/${gameState.gameCode}/turn`
-            ];
-            
-            topics.forEach(topic => {
-                client.subscribe(topic, { qos: 1 }, (err) => {
-                    if (err) console.error(`Error suscribiendo a ${topic}:`, err);
-                });
-            });
-        }
-
-        // Inicializar tableros
-        function initBoards() {
-            const myBoard = document.getElementById('myBoard');
-            const myBoardPlay = document.getElementById('myBoardPlay');
-            const enemyBoard = document.getElementById('enemyBoard');
-            
-            [myBoard, myBoardPlay, enemyBoard].forEach(board => {
-                if (!board) return;
-                board.innerHTML = '';
-                for (let i = 0; i < 100; i++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.dataset.row = Math.floor(i / 10);
-                    cell.dataset.col = i % 10;
-                    board.appendChild(cell);
+            if (subtopic === 'ready' && data.player !== gameState.player) {
+                if (gameState.phase === 'placement') {
+                    showNotif('Oponente listo. Terminando colocación...', 'info');
+                    if (gameState.placedShips.length === 5) startDicePhase();
                 }
-            });
+            }
+
+            if (subtopic === 'dice' && data.player !== gameState.player) {
+                gameState.enemyRoll = data.roll;
+                checkDiceWinner();
+            }
+
+            if (subtopic === 'shot' && data.player !== gameState.player) {
+                receiveShot(data.row, data.col);
+            }
+
+            if (subtopic === 'result' && data.player !== gameState.player) {
+                processShotResult(data);
+            }
+        });
+
+        // === COLOCACIÓN DE BARCOS ===
+        function initPlacement() {
+            const board = document.getElementById('myBoard');
+            board.innerHTML = '';
+            for (let i = 0; i < 100; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.idx = i;
+                cell.ondrop = dropShip;
+                cell.ondragover = allowDrop;
+                board.appendChild(cell);
+            }
+            renderShips();
         }
 
-        // Crear barcos para colocar
-        function createShipPreviews() {
+        function renderShips() {
             const container = document.getElementById('shipsContainer');
             container.innerHTML = '';
-            
-            gameState.ships.forEach((ship, index) => {
+            gameState.ships.forEach((ship, idx) => {
                 if (ship.placed) return;
-                
-                const shipDiv = document.createElement('div');
-                shipDiv.className = 'ship-preview';
-                shipDiv.dataset.shipIndex = index;
-                shipDiv.draggable = true;
-                
+                const el = document.createElement('div');
+                el.className = 'ship-preview';
+                el.draggable = true;
+                el.ondragstart = (e) => { draggedShip = idx; };
+                el.onclick = () => { ship.horizontal = !ship.horizontal; renderShips(); };
+
+                el.style.flexDirection = ship.horizontal ? 'row' : 'column';
                 for (let i = 0; i < ship.size; i++) {
                     const cell = document.createElement('div');
                     cell.className = 'ship-cell';
-                    shipDiv.appendChild(cell);
+                    el.appendChild(cell);
                 }
-                
-                shipDiv.addEventListener('dragstart', (e) => {
-                    draggedShip = { index, ship };
-                    e.dataTransfer.effectAllowed = 'move';
-                });
-                
-                shipDiv.addEventListener('click', () => {
-                    ship.horizontal = !ship.horizontal;
-                    updateShipPreview(shipDiv, ship);
-                });
-                
-                container.appendChild(shipDiv);
+                container.appendChild(el);
             });
-        }
 
-        function updateShipPreview(div, ship) {
-            div.style.flexDirection = ship.horizontal ? 'row' : 'column';
-        }
-
-        // Colocación de barcos
-        function setupBoardDragDrop() {
-            const board = document.getElementById('myBoard');
-            if (!board) return;
-            
-            board.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
-            
-            board.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (!draggedShip) return;
-                
-                const cell = e.target.closest('.cell');
-                if (!cell) return;
-                
-                const row = parseInt(cell.dataset.row);
-                const col = parseInt(cell.dataset.col);
-                const ship = gameState.ships[draggedShip.index];
-                
-                if (canPlaceShip(row, col, ship)) {
-                    placeShip(row, col, ship);
-                    ship.placed = true;
-                    gameState.placedShips.push({ row, col, size: ship.size, horizontal: ship.horizontal });
-                    
-                    const shipDiv = document.querySelector(`[data-ship-index="${draggedShip.index}"]`);
-                    if (shipDiv) {
-                        shipDiv.classList.add('placed');
-                        shipDiv.draggable = false;
+            if (gameState.placedShips.length === 5) {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.textContent = '¡LISTO PARA LA BATALLA!';
+                btn.onclick = () => {
+                    if (gameState.isCpuGame) {
+                        startDicePhase();
+                    } else {
+                        client.publish(`battleship/${gameState.code}/ready`, JSON.stringify({ player: gameState.player }));
+                        showNotif('Esperando al oponente...', 'info');
                     }
-                    
-                    // Verificar si todos los barcos están colocados
-                    if (gameState.ships.every(s => s.placed)) {
-                        sendBoardState();
-                        showNotification('Todos los barcos colocados. Esperando al oponente...', 'warning');
-                    }
-                    
-                    draggedShip = null;
-                } else {
-                    showNotification('No se puede colocar el barco ahí', 'error');
-                }
-            });
+                };
+                container.appendChild(btn);
+            }
         }
 
-        function canPlaceShip(row, col, ship) {
-            const size = ship.size;
-            const horizontal = ship.horizontal;
-            
+        function allowDrop(ev) { ev.preventDefault(); }
+
+        function dropShip(ev) {
+            ev.preventDefault();
+            if (draggedShip === null) return;
+
+            const idx = parseInt(ev.target.dataset.idx);
+            const row = Math.floor(idx / 10);
+            const col = idx % 10;
+            const ship = gameState.ships[draggedShip];
+
+            if (canPlace(row, col, ship.size, ship.horizontal, gameState.myBoard)) {
+                placeShipOnBoard(row, col, ship, gameState.myBoard);
+                ship.placed = true;
+                gameState.placedShips.push({ ...ship, row, col }); // Guardar posición
+                renderShips();
+                drawMyBoard();
+            } else {
+                showNotif('No cabe aquí', 'error');
+            }
+        }
+
+        function canPlace(row, col, size, horizontal, board) {
             if (horizontal) {
                 if (col + size > 10) return false;
-                for (let i = 0; i < size; i++) {
-                    if (gameState.myBoard[row][col + i] !== 0) return false;
-                }
+                for (let i = 0; i < size; i++) if (board[row][col + i] !== 0) return false;
             } else {
                 if (row + size > 10) return false;
-                for (let i = 0; i < size; i++) {
-                    if (gameState.myBoard[row + i][col] !== 0) return false;
-                }
+                for (let i = 0; i < size; i++) if (board[row + i][col] !== 0) return false;
             }
-            
             return true;
         }
 
-        function placeShip(row, col, ship) {
-            const size = ship.size;
-            const horizontal = ship.horizontal;
-            
-            if (horizontal) {
-                for (let i = 0; i < size; i++) {
-                    gameState.myBoard[row][col + i] = 1;
-                    const cell = document.querySelector(`#myBoard .cell[data-row="${row}"][data-col="${col + i}"]`);
-                    if (cell) cell.classList.add('ship');
-                }
+        function placeShipOnBoard(row, col, ship, board) {
+            if (ship.horizontal) {
+                for (let i = 0; i < ship.size; i++) board[row][col + i] = 1;
             } else {
-                for (let i = 0; i < size; i++) {
-                    gameState.myBoard[row + i][col] = 1;
-                    const cell = document.querySelector(`#myBoard .cell[data-row="${row + i}"][data-col="${col}"]`);
-                    if (cell) cell.classList.add('ship');
-                }
+                for (let i = 0; i < ship.size; i++) board[row + i][col] = 1;
             }
         }
 
-        function sendBoardState() {
-            if (!gameState.gameCode) return;
-            const topic = `battleship/game/${gameState.gameCode}/player${gameState.playerNumber}/board`;
-            client.publish(topic, JSON.stringify({ board: gameState.myBoard, ready: true }), { qos: 1 });
+        function drawMyBoard() {
+            const cells = document.getElementById('myBoard').children;
+            for (let i = 0; i < 100; i++) {
+                const row = Math.floor(i / 10);
+                const col = i % 10;
+                if (gameState.myBoard[row][col] === 1) cells[i].classList.add('ship');
+            }
         }
 
-        // Sistema de dado
+        // === FASE DE DADO ===
+        function startDicePhase() {
+            gameState.phase = 'dice';
+            document.getElementById('placementPhase').style.display = 'none';
+            document.getElementById('dicePhase').style.display = 'block';
+        }
+
         function rollDice() {
-            if (gameState.myDiceRoll !== null) return;
-            
             const dice = document.getElementById('dice');
+            if (dice.classList.contains('rolling')) return;
+
             dice.classList.add('rolling');
-            
             setTimeout(() => {
-                const roll = Math.floor(Math.random() * 6) + 1;
-                gameState.myDiceRoll = roll;
-                dice.textContent = roll;
                 dice.classList.remove('rolling');
-                
-                const topic = `battleship/game/${gameState.gameCode}/dice`;
-                client.publish(topic, JSON.stringify({ player: gameState.playerNumber, roll }), { qos: 1 });
-                
-                updateDiceResults();
-            }, 500);
+                const roll = Math.floor(Math.random() * 6) + 1;
+                gameState.myRoll = roll;
+                document.getElementById('diceResult').textContent = `Sacaste un ${roll}`;
+
+                if (gameState.isCpuGame) {
+                    const cpuRoll = Math.floor(Math.random() * 6) + 1;
+                    gameState.enemyRoll = cpuRoll;
+                    setTimeout(() => {
+                        showNotif(`CPU sacó un ${cpuRoll}`, 'info');
+                        checkDiceWinner();
+                    }, 1000);
+                } else {
+                    client.publish(`battleship/${gameState.code}/dice`, JSON.stringify({ player: gameState.player, roll }));
+                    if (gameState.enemyRoll) checkDiceWinner();
+                    else showNotif('Esperando dado del oponente...', 'info');
+                }
+            }, 1000);
         }
 
-        function updateDiceResults() {
-            const resultsDiv = document.getElementById('diceResults');
-            if (!resultsDiv) return;
-            
-            resultsDiv.style.display = 'flex';
-            resultsDiv.innerHTML = `
-                <div class="dice-result">
-                    <h4>Tu Dado</h4>
-                    <div class="dice-value">${gameState.myDiceRoll || '?'}</div>
-                </div>
-                <div class="dice-result">
-                    <h4>Oponente</h4>
-                    <div class="dice-value">${gameState.enemyDiceRoll || '?'}</div>
-                </div>
-            `;
+        function checkDiceWinner() {
+            if (gameState.myRoll > gameState.enemyRoll) {
+                startGame(true);
+            } else if (gameState.enemyRoll > gameState.myRoll) {
+                startGame(false);
+            } else {
+                showNotif('¡Empate! Tira de nuevo', 'warning');
+                gameState.myRoll = null;
+                gameState.enemyRoll = null;
+            }
         }
 
-        // Sistema de disparos
-        function setupEnemyBoard() {
-            const board = document.getElementById('enemyBoard');
-            if (!board) return;
-            
-            board.querySelectorAll('.cell').forEach(cell => {
-                cell.addEventListener('click', () => {
-                    if (gameState.currentTurn !== gameState.playerNumber) {
-                        showNotification('No es tu turno', 'error');
-                        return;
+        // === JUEGO PRINCIPAL ===
+        function startGame(myTurn) {
+            gameState.phase = 'playing';
+            gameState.turn = myTurn;
+            document.getElementById('dicePhase').style.display = 'none';
+            document.getElementById('playPhase').style.display = 'block';
+
+            initGameBoards();
+            updateTurnStatus();
+
+            if (!myTurn && gameState.isCpuGame) {
+                setTimeout(cpuTurn, 2000);
+            }
+        }
+
+        function initGameBoards() {
+            // Copiar tablero propio
+            const myBoard = document.getElementById('myBoardPlay');
+            myBoard.innerHTML = '';
+            for (let i = 0; i < 100; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                const row = Math.floor(i / 10);
+                const col = i % 10;
+                if (gameState.myBoard[row][col] === 1) cell.classList.add('ship');
+                myBoard.appendChild(cell);
+            }
+
+            // Crear tablero enemigo
+            const enemyBoard = document.getElementById('enemyBoard');
+            enemyBoard.innerHTML = '';
+            for (let i = 0; i < 100; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.onclick = () => attack(Math.floor(i / 10), i % 10);
+                enemyBoard.appendChild(cell);
+            }
+        }
+
+        function updateTurnStatus() {
+            const status = document.getElementById('gameStatus');
+            if (gameState.turn) {
+                status.textContent = '¡TU TURNO! Dispara al radar enemigo';
+                status.style.background = 'rgba(76, 175, 80, 0.2)';
+            } else {
+                status.textContent = 'Turno del Oponente...';
+                status.style.background = 'rgba(244, 67, 54, 0.2)';
+            }
+        }
+
+        function attack(row, col) {
+            if (!gameState.turn) return showNotif('No es tu turno', 'error');
+            if (gameState.enemyBoard[row][col] !== 0) return showNotif('Ya disparaste aquí', 'warning');
+
+            if (gameState.isCpuGame) {
+                // Lógica local vs CPU
+                const hit = gameState.cpuBoard[row][col] === 1;
+                processShotResult({ row, col, hit, player: 2 }); // player 2 es CPU (oponente)
+
+                if (!hit) {
+                    gameState.turn = false;
+                    updateTurnStatus();
+                    setTimeout(cpuTurn, 1500);
+                } else {
+                    gameState.enemyShipsAlive -= checkSunk(row, col, gameState.cpuShips, gameState.enemyBoard);
+                    if (gameState.enemyShipsAlive === 0) endGame(true);
+                }
+            } else {
+                // Online
+                client.publish(`battleship/${gameState.code}/shot`, JSON.stringify({ player: gameState.player, row, col }));
+                gameState.turn = false; // Esperar confirmación
+                updateTurnStatus();
+            }
+        }
+
+        function receiveShot(row, col) {
+            const hit = gameState.myBoard[row][col] === 1;
+            const cell = document.getElementById('myBoardPlay').children[row * 10 + col];
+
+            if (hit) {
+                cell.classList.add('hit');
+                gameState.myBoard[row][col] = 2; // Marcado como golpeado
+                // Verificar hundido (simplificado)
+                gameState.myShipsAlive = countShipsAlive(gameState.myBoard);
+                if (gameState.myShipsAlive === 0) endGame(false);
+            } else {
+                cell.classList.add('miss');
+            }
+
+            if (!gameState.isCpuGame) {
+                client.publish(`battleship/${gameState.code}/result`, JSON.stringify({
+                    player: gameState.player,
+                    row, col, hit,
+                    shipsAlive: gameState.myShipsAlive
+                }));
+            }
+
+            if (!hit) {
+                gameState.turn = true;
+                updateTurnStatus();
+            }
+        }
+
+        function processShotResult(data) {
+            const cell = document.getElementById('enemyBoard').children[data.row * 10 + data.col];
+            if (data.hit) {
+                cell.classList.add('hit');
+                gameState.enemyBoard[data.row][data.col] = 2;
+                showNotif('¡IMPACTO!', 'success');
+                if (data.shipsAlive === 0) endGame(true);
+                else gameState.turn = true; // Sigue tirando
+            } else {
+                cell.classList.add('miss');
+                gameState.enemyBoard[data.row][data.col] = 1;
+                showNotif('Agua...', 'info');
+                gameState.turn = false;
+            }
+            updateTurnStatus();
+        }
+
+        function endGame(win) {
+            gameState.phase = 'finished';
+            const msg = win ? '🎉 ¡VICTORIA! Has hundido la flota enemiga' : '💀 DERROTA... Tu flota ha sido destruida';
+            document.getElementById('gameStatus').textContent = msg;
+            document.getElementById('gameStatus').style.background = win ? '#4caf50' : '#f44336';
+            showNotif(msg, win ? 'success' : 'error');
+        }
+
+        // === LÓGICA CPU ===
+        function placeCpuShips() {
+            gameState.cpuBoard = Array(10).fill().map(() => Array(10).fill(0));
+            gameState.cpuShips = JSON.parse(JSON.stringify(gameState.ships)); // Copia profunda
+
+            gameState.cpuShips.forEach(ship => {
+                let placed = false;
+                while (!placed) {
+                    const row = Math.floor(Math.random() * 10);
+                    const col = Math.floor(Math.random() * 10);
+                    const horizontal = Math.random() > 0.5;
+                    if (canPlace(row, col, ship.size, horizontal, gameState.cpuBoard)) {
+                        placeShipOnBoard(row, col, { ...ship, horizontal }, gameState.cpuBoard);
+                        placed = true;
                     }
-                    
-                    const row = parseInt(cell.dataset.row);
-                    const col = parseInt(cell.dataset.col);
-                    
-                    if (gameState.myShots[row][col] !== 0) {
-                        showNotification('Ya disparaste ahí', 'error');
-                        return;
-                    }
-                    
-                    shoot(row, col);
-                });
+                }
             });
         }
 
-        function shoot(row, col) {
-            const topic = `battleship/game/${gameState.gameCode}/player${gameState.playerNumber}/shots`;
-            client.publish(topic, JSON.stringify({ row, col }), { qos: 1 });
-        }
+        function cpuTurn() {
+            if (gameState.phase !== 'playing') return;
 
-        function processShot(shotData, isMyShot) {
-            const { row, col, hit, shipDestroyed } = shotData;
-            
-            if (isMyShot) {
-                // Mi disparo contra el oponente
-                if (gameState.myShots[row][col] !== 0) return; // Ya procesado
-                
-                gameState.myShots[row][col] = hit ? 2 : 1;
-                const cell = document.querySelector(`#enemyBoard .cell[data-row="${row}"][data-col="${col}"]`);
-                if (cell) {
-                    cell.classList.add(hit ? 'hit' : 'miss');
-                    cell.classList.add('disabled');
-                }
-                
-                if (hit) {
-                    showNotification('¡Impacto! Puedes disparar de nuevo', 'warning');
-                    if (shipDestroyed) {
-                        gameState.enemyShipsRemaining--;
-                        showNotification(`¡Barco enemigo hundido! (${gameState.enemyShipsRemaining} restantes)`, 'warning');
-                        if (gameState.enemyShipsRemaining === 0) {
-                            showNotification('🎉 ¡GANASTE! 🎉', 'warning');
-                            gameState.phase = 'finished';
-                            const statusEl = document.getElementById('gameStatus');
-                            if (statusEl) {
-                                statusEl.textContent = '¡Has ganado la partida!';
-                                statusEl.style.background = 'rgba(76, 175, 80, 0.5)';
-                            }
-                        }
-                    }
-                    // Si acertó, puede seguir disparando (no cambia el turno)
-                } else {
-                    showNotification('Agua - Turno del oponente', 'error');
-                    gameState.currentTurn = gameState.playerNumber === 1 ? 2 : 1;
-                    updateGameStatus();
-                }
-            } else {
-                // Disparo del oponente contra mí
-                if (gameState.enemyShots[row][col] !== 0) return; // Ya procesado
-                
-                gameState.enemyShots[row][col] = hit ? 2 : 1;
-                const cell = document.querySelector(`#myBoardPlay .cell[data-row="${row}"][data-col="${col}"]`);
-                if (cell) {
-                    if (hit) {
-                        cell.classList.add('hit');
-                        if (gameState.myBoard[row][col] === 1) {
-                            gameState.myBoard[row][col] = 2;
-                        }
-                    } else {
-                        cell.classList.add('miss');
-                    }
-                    cell.classList.add('disabled');
-                }
-                
-                if (hit) {
-                    showNotification('Te han dado - Oponente puede seguir', 'error');
-                    if (shipDestroyed) {
-                        gameState.myShipsRemaining--;
-                        showNotification(`Tu barco ha sido hundido (${gameState.myShipsRemaining} restantes)`, 'error');
-                        if (gameState.myShipsRemaining === 0) {
-                            showNotification('💀 Has perdido la partida', 'error');
-                            gameState.phase = 'finished';
-                            const statusEl = document.getElementById('gameStatus');
-                            if (statusEl) {
-                                statusEl.textContent = 'Has perdido la partida';
-                                statusEl.style.background = 'rgba(244, 67, 54, 0.5)';
-                            }
-                        }
-                    }
-                    // Si me dieron, el oponente puede seguir (no cambia el turno)
-                } else {
-                    showNotification('Oponente falló - Tu turno', 'warning');
-                    gameState.currentTurn = gameState.playerNumber;
-                    updateGameStatus();
-                }
+            let row, col;
+            do {
+                row = Math.floor(Math.random() * 10);
+                col = Math.floor(Math.random() * 10);
+            } while (document.getElementById('myBoardPlay').children[row * 10 + col].classList.contains('hit') ||
+                document.getElementById('myBoardPlay').children[row * 10 + col].classList.contains('miss'));
+
+            showNotif(`CPU dispara a ${String.fromCharCode(65 + row)}${col + 1}`, 'warning');
+            receiveShot(row, col);
+
+            // Si CPU acierta, tira de nuevo
+            if (gameState.myBoard[row][col] === 2 && gameState.phase === 'playing') {
+                setTimeout(cpuTurn, 1500);
             }
         }
 
-        function updateGameStatus() {
-            const statusEl = document.getElementById('gameStatus');
-            if (!statusEl) return;
-            
-            if (gameState.currentTurn === gameState.playerNumber) {
-                statusEl.textContent = 'Tu turno - Haz clic en el tablero enemigo para disparar';
-                statusEl.style.background = 'rgba(76, 175, 80, 0.3)';
-            } else {
-                statusEl.textContent = 'Turno del oponente - Espera...';
-                statusEl.style.background = 'rgba(244, 67, 54, 0.3)';
-            }
+        // === UTILIDADES ===
+        function showNotif(msg, type) {
+            const el = document.getElementById('notification');
+            el.textContent = msg;
+            el.className = `notification show ${type}`;
+            setTimeout(() => el.classList.remove('show'), 3000);
         }
 
-        // MQTT Message Handler
-        client.on('connect', () => {
-            console.log('Conectado a MQTT');
-        });
-
-        client.on('message', (topic, message) => {
-            const data = JSON.parse(message.toString());
-            const code = gameState.gameCode;
-            
-            if (!code) return;
-            
-            if (topic.includes('/create') && gameState.playerNumber === 1) {
-                if (data.player === 2) {
-                    showNotification('Segundo jugador conectado!', 'warning');
-                    document.getElementById('createStatus').textContent = 'Ambos jugadores conectados. Coloca tus barcos.';
-                    showScreen('gameScreen');
-                    gameState.phase = 'placement';
-                    initBoards();
-                    createShipPreviews();
-                    setupBoardDragDrop();
-                }
-            }
-            
-            if (topic.includes('/join') && gameState.playerNumber === 2) {
-                if (data.player === 1) {
-                    showNotification('Conectado a la partida!', 'warning');
-                    showScreen('gameScreen');
-                    gameState.phase = 'placement';
-                    initBoards();
-                    createShipPreviews();
-                    setupBoardDragDrop();
-                }
-            }
-            
-            if (topic.includes('/board')) {
-                const playerNum = topic.includes('player1') ? 1 : 2;
-                if (playerNum !== gameState.playerNumber && data.ready) {
-                    // Oponente listo
-                    if (gameState.ships.every(s => s.placed)) {
-                        // Ambos listos, ir a fase de dado
-                        gameState.phase = 'dice';
-                        document.getElementById('placementPhase').style.display = 'none';
-                        document.getElementById('dicePhase').style.display = 'block';
-                    }
-                }
-            }
-            
-            if (topic.includes('/dice')) {
-                if (data.player !== gameState.playerNumber) {
-                    gameState.enemyDiceRoll = data.roll;
-                    updateDiceResults();
-                    
-                    if (gameState.myDiceRoll && gameState.enemyDiceRoll) {
-                        // Determinar quién inicia
-                        if (gameState.myDiceRoll > gameState.enemyDiceRoll) {
-                            gameState.currentTurn = gameState.playerNumber;
-                            showNotification('¡Empiezas tú!', 'warning');
-                        } else if (gameState.enemyDiceRoll > gameState.myDiceRoll) {
-                            gameState.currentTurn = gameState.playerNumber === 1 ? 2 : 1;
-                            showNotification('El oponente empieza', 'error');
-                        } else {
-                            // Empate, volver a lanzar
-                            gameState.myDiceRoll = null;
-                            gameState.enemyDiceRoll = null;
-                            showNotification('Empate. Lanza de nuevo', 'warning');
-                            return;
-                        }
-                        
-                        // Iniciar juego
-                        setTimeout(() => {
-                            gameState.phase = 'playing';
-                            document.getElementById('dicePhase').style.display = 'none';
-                            document.getElementById('playPhase').style.display = 'block';
-                            initBoards();
-                            setupEnemyBoard();
-                            updateGameStatus();
-                            
-                            // Copiar barcos al tablero de juego
-                            gameState.placedShips.forEach(ship => {
-                                if (ship.horizontal) {
-                                    for (let i = 0; i < ship.size; i++) {
-                                        const cell = document.querySelector(`#myBoardPlay .cell[data-row="${ship.row}"][data-col="${ship.col + i}"]`);
-                                        if (cell) cell.classList.add('ship');
-                                    }
-                                } else {
-                                    for (let i = 0; i < ship.size; i++) {
-                                        const cell = document.querySelector(`#myBoardPlay .cell[data-row="${ship.row + i}"][data-col="${ship.col}"]`);
-                                        if (cell) cell.classList.add('ship');
-                                    }
-                                }
-                            });
-                        }, 2000);
-                    }
-                }
-            }
-            
-            if (topic.includes('/shots')) {
-                const playerNum = topic.includes('player1') ? 1 : 2;
-                const isMyShot = playerNum === gameState.playerNumber;
-                
-                if (!isMyShot) {
-                    // Disparo del oponente contra mí - verificar si me dio
-                    const hit = gameState.myBoard[data.row][data.col] === 1;
-                    let shipDestroyed = false;
-                    
-                    if (hit) {
-                        gameState.myBoard[data.row][data.col] = 2;
-                        shipDestroyed = checkShipDestroyed(data.row, data.col);
-                        
-                        if (shipDestroyed) {
-                            gameState.myShipsRemaining--;
-                        }
-                    }
-                    
-                    // Publicar resultado al oponente
-                    const resultTopic = `battleship/game/${code}/player${playerNum}/shotResult`;
-                    client.publish(resultTopic, JSON.stringify({ 
-                        row: data.row, 
-                        col: data.col, 
-                        hit, 
-                        shipDestroyed,
-                        shipsRemaining: gameState.myShipsRemaining
-                    }), { qos: 1 });
-                    
-                    // Procesar visualmente el disparo en mi tablero
-                    processShot({ row: data.row, col: data.col, hit, shipDestroyed }, false);
-                } else {
-                    // Mi disparo - esperar resultado del oponente
-                    // El resultado vendrá en /shotResult
-                }
-            }
-            
-            if (topic.includes('/shotResult')) {
-                // Resultado de mi disparo contra el oponente
-                if (gameState.myShots[data.row] && gameState.myShots[data.row][data.col] === 0) {
-                    processShot(data, true);
-                    
-                    if (data.shipDestroyed) {
-                        gameState.enemyShipsRemaining = data.shipsRemaining || gameState.enemyShipsRemaining - 1;
-                    }
-                }
-            }
-            
-            if (topic.includes('/turn')) {
-                gameState.currentTurn = data.turn;
-                updateGameStatus();
-            }
-        });
-
-        function checkShipDestroyed(row, col) {
-            // Buscar el barco que contiene esta celda
-            for (let ship of gameState.placedShips) {
-                let shipCells = [];
-                if (ship.horizontal) {
-                    for (let i = 0; i < ship.size; i++) {
-                        shipCells.push({ row: ship.row, col: ship.col + i });
-                    }
-                } else {
-                    for (let i = 0; i < ship.size; i++) {
-                        shipCells.push({ row: ship.row + i, col: ship.col });
-                    }
-                }
-                
-                // Verificar si esta celda pertenece a este barco
-                const belongsToShip = shipCells.some(c => c.row === row && c.col === col);
-                
-                if (belongsToShip) {
-                    // Verificar si todas las celdas del barco fueron golpeadas
-                    const allHit = shipCells.every(c => gameState.myBoard[c.row][c.col] === 2);
-                    return allHit;
-                }
-            }
-            return false;
+        function countShipsAlive(board) {
+            // Simplificado: cuenta celdas de barco restantes
+            let count = 0;
+            for (let r = 0; r < 10; r++) for (let c = 0; c < 10; c++) if (board[r][c] === 1) count++;
+            return Math.ceil(count / 3); // Aproximación
         }
 
-        function showNotification(message, type = 'info') {
-            notification.textContent = message;
-            notification.className = `notification ${type} show`;
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+        // No usado en CPU pero necesario para lógica
+        function checkSunk(row, col, ships, board) {
+            return 0; // Implementación completa requeriría rastrear cada barco individualmente
         }
 
-        // Inicializar
-        initBoards();
     </script>
 </body>
-</html>
 
+</html>

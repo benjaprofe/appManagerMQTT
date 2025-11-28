@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control - Tienda Inteligente</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --font-main: 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--dark);
+            margin-bottom: 15px;
+            font-size: 2.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        h1 i {
+            color: var(--primary);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 25px;
+            border-radius: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .status.connected {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+
+        .status.disconnected {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--light);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .control-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .control-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .control-card h3 {
+            margin-bottom: 20px;
+            color: var(--dark);
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #dfe6e9;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: var(--font-main);
+            transition: border 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .info-box {
+            background: rgba(99, 102, 241, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: var(--dark);
+            border-left: 4px solid var(--primary);
+        }
+
+        .notification {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            background: var(--success);
+            color: white;
+            padding: 18px 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            display: none;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            display: block;
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .notification.warning {
+            background: var(--warning);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .cajas-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .caja-btn {
+            padding: 15px;
+            border: 2px solid #d1d5db;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .caja-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .caja-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .emergency-card {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .emergency-card h3 {
+            color: white;
+        }
+
+        .emergency-card .info-box {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-left-color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>
+            <i class="fa-solid fa-store"></i>
+            Panel de Control - Tienda Inteligente
+        </h1>
+        <p class="subtitle">Gestiona todos los sistemas de tu tienda desde un solo lugar</p>
+
+        <div id="status" class="status disconnected">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            Desconectado
+        </div>
+
+        <div id="notification" class="notification"></div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('acceso')">
+                <i class="fa-solid fa-door-open"></i> Acceso
+            </button>
+            <button class="tab" onclick="showTab('ambiente')">
+                <i class="fa-solid fa-temperature-half"></i> Ambiente
+            </button>
+            <button class="tab" onclick="showTab('iluminacion')">
+                <i class="fa-solid fa-lightbulb"></i> Iluminación
+            </button>
+            <button class="tab" onclick="showTab('ventilacion')">
+                <i class="fa-solid fa-fan"></i> Ventilación
+            </button>
+            <button class="tab" onclick="showTab('cajas')">
+                <i class="fa-solid fa-cash-register"></i> Cajas
+            </button>
+            <button class="tab" onclick="showTab('inventario')">
+                <i class="fa-solid fa-boxes-stacked"></i> Inventario
+            </button>
+            <button class="tab" onclick="showTab('emergencia')">
+                <i class="fa-solid fa-triangle-exclamation"></i> Emergencia
+            </button>
+        </div>
+
+        <!-- Tab: Acceso -->
+        <div id="tab-acceso" class="tab-content active">
+            <div class="controls-grid">
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-door-open"></i> Control de Puerta</h3>
+                    <button class="btn btn-success" onclick="controlarPuerta('abierta')">
+                        <i class="fa-solid fa-door-open"></i>
+                        Abrir Puerta
+                    </button>
+                    <button class="btn btn-danger" onclick="controlarPuerta('cerrada')">
+                        <i class="fa-solid fa-door-closed"></i>
+                        Cerrar Puerta
+                    </button>
+                    <div class="info-box">
+                        Control remoto de la puerta principal de la tienda
+                    </div>
+                </div>
+
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-moon"></i> Modo Nocturno</h3>
+                    <button class="btn btn-primary" onclick="cambiarModo('nocturno')">
+                        <i class="fa-solid fa-moon"></i>
+                        Activar Modo Nocturno
+                    </button>
+                    <button class="btn btn-warning" onclick="cambiarModo('normal')">
+                        <i class="fa-solid fa-sun"></i>
+                        Modo Normal
+                    </button>
+                    <div class="info-box">
+                        El modo nocturno activa seguridad adicional y reduce consumo
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Ambiente -->
+        <div id="tab-ambiente" class="tab-content">
+            <div class="controls-grid">
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-thermometer-half"></i> Temperatura</h3>
+                    <div class="input-group">
+                        <label>Temperatura actual (°C)</label>
+                        <input type="number" id="temperatura" value="22" min="15" max="35" step="0.5">
+                    </div>
+                    <button class="btn btn-primary" onclick="actualizarTemperatura()">
+                        <i class="fa-solid fa-sync"></i>
+                        Actualizar Temperatura
+                    </button>
+                </div>
+
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-droplet"></i> Humedad</h3>
+                    <div class="input-group">
+                        <label>Humedad actual (%)</label>
+                        <input type="number" id="humedad" value="50" min="0" max="100">
+                    </div>
+                    <button class="btn btn-primary" onclick="actualizarHumedad()">
+                        <i class="fa-solid fa-sync"></i>
+                        Actualizar Humedad
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Iluminación -->
+        <div id="tab-iluminacion" class="tab-content">
+            <div class="controls-grid">
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-lightbulb"></i> Control de Luces</h3>
+                    <button class="btn btn-success" onclick="controlarLuces('encendidas')">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        Encender Luces
+                    </button>
+                    <button class="btn btn-danger" onclick="controlarLuces('apagadas')">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        Apagar Luces
+                    </button>
+                    <div class="info-box">
+                        Control centralizado de toda la iluminación de la tienda
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Ventilación -->
+        <div id="tab-ventilacion" class="tab-content">
+            <div class="controls-grid">
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-fan"></i> Control de Ventilación</h3>
+                    <button class="btn btn-success" onclick="controlarVentilacion('encendida')">
+                        <i class="fa-solid fa-fan"></i>
+                        Encender Ventilación
+                    </button>
+                    <button class="btn btn-danger" onclick="controlarVentilacion('apagada')">
+                        <i class="fa-solid fa-fan"></i>
+                        Apagar Ventilación
+                    </button>
+                    <div class="info-box">
+                        Sistema de ventilación y climatización de la tienda
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Cajas -->
+        <div id="tab-cajas" class="tab-content">
+            <div class="controls-grid">
+                <div class="control-card" style="grid-column: 1 / -1;">
+                    <h3><i class="fa-solid fa-cash-register"></i> Gestión de Cajas Registradoras</h3>
+                    <p style="margin-bottom: 15px; color: #6b7280;">Selecciona una caja para gestionar:</p>
+                    <div class="cajas-selector" id="cajas-selector">
+                        <!-- Generado por JS -->
+                    </div>
+                    <div id="caja-controls" style="margin-top: 20px; display: none;">
+                        <h4 style="margin-bottom: 15px;">Caja <span id="caja-selected">-</span></h4>
+                        <button class="btn btn-success" onclick="activarCaja()">
+                            <i class="fa-solid fa-power-off"></i>
+                            Activar Caja
+                        </button>
+                        <button class="btn btn-danger" onclick="desactivarCaja()">
+                            <i class="fa-solid fa-power-off"></i>
+                            Desactivar Caja
+                        </button>
+                        <div class="input-group">
+                            <label>Registrar Venta ($)</label>
+                            <input type="number" id="venta-monto" value="0" min="0" step="0.01">
+                        </div>
+                        <button class="btn btn-primary" onclick="registrarVenta()">
+                            <i class="fa-solid fa-dollar-sign"></i>
+                            Registrar Venta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Inventario -->
+        <div id="tab-inventario" class="tab-content">
+            <div class="controls-grid">
+                <div class="control-card">
+                    <h3><i class="fa-solid fa-boxes-stacked"></i> Alerta de Inventario</h3>
+                    <div class="input-group">
+                        <label>Nombre del Producto</label>
+                        <input type="text" id="producto-nombre" placeholder="Ej: Leche Entera 1L">
+                    </div>
+                    <div class="input-group">
+                        <label>Stock Actual</label>
+                        <input type="number" id="producto-stock" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Stock Mínimo</label>
+                        <input type="number" id="producto-minimo" value="10" min="1">
+                    </div>
+                    <button class="btn btn-warning" onclick="enviarAlertaInventario()">
+                        <i class="fa-solid fa-exclamation-triangle"></i>
+                        Enviar Alerta de Stock Bajo
+                    </button>
+                    <div class="info-box">
+                        Genera una alerta cuando un producto está por debajo del stock mínimo
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Emergencia -->
+        <div id="tab-emergencia" class="tab-content">
+            <div class="controls-grid">
+                <div class="control-card emergency-card">
+                    <h3><i class="fa-solid fa-triangle-exclamation"></i> Alarma de Pánico</h3>
+                    <button class="btn btn-danger" onclick="activarAlarmaPanico()">
+                        <i class="fa-solid fa-bell"></i>
+                        ACTIVAR ALARMA DE PÁNICO
+                    </button>
+                    <button class="btn btn-success" onclick="desactivarAlarmaPanico()">
+                        <i class="fa-solid fa-bell-slash"></i>
+                        Desactivar Alarma
+                    </button>
+                    <div class="info-box">
+                        ⚠️ Activa sonido de alarma para situaciones de emergencia
+                    </div>
+                </div>
+
+                <div class="control-card emergency-card">
+                    <h3><i class="fa-solid fa-siren-on"></i> Sistema de Emergencia</h3>
+                    <button class="btn btn-danger" onclick="activarEmergencia()">
+                        <i class="fa-solid fa-siren-on"></i>
+                        ACTIVAR EMERGENCIA COMPLETA
+                    </button>
+                    <button class="btn btn-success" onclick="desactivarEmergencia()">
+                        <i class="fa-solid fa-check"></i>
+                        Desactivar Emergencia
+                    </button>
+                    <div class="info-box">
+                        ⚠️ Activa sonido y luces intermitentes de emergencia
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_salgado');
+        let selectedCaja = null;
+
+        client.on("connect", () => {
+            console.log("Panel de Control conectado!");
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-check-circle"></i> Conectado';
+            document.getElementById("status").className = "status connected";
+            showNotification("✅ Conectado a MQTT", "success");
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Error';
+            document.getElementById("status").className = "status disconnected";
+            showNotification("❌ Error de conexión", "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Desconectado';
+            document.getElementById("status").className = "status disconnected";
+            showNotification("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        function publish(topic, value, description) {
+            if (!client.connected) {
+                showNotification("❌ No conectado a MQTT", "error");
+                return;
+            }
+
+            client.publish(topic, value, { qos: 1 }, (err) => {
+                if (err) {
+                    console.error(`Error publicando ${topic}:`, err);
+                    showNotification(`❌ Error: ${description}`, "error");
+                } else {
+                    console.log(`✅ Publicado: ${topic} = ${value}`);
+                    showNotification(`✅ ${description}`, "success");
+                }
+            });
+        }
+
+        function showNotification(message, type = "success") {
+            const notification = document.getElementById("notification");
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.closest('.tab').classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // === FUNCIONES DE CONTROL ===
+
+        function controlarPuerta(estado) {
+            if (confirm(`¿${estado === 'abierta' ? 'Abrir' : 'Cerrar'} la puerta?`)) {
+                publish("tienda/salgado/acceso/puerta", estado, `Puerta ${estado}`);
+            }
+        }
+
+        function cambiarModo(modo) {
+            publish("tienda/salgado/acceso/modo", modo, `Modo ${modo} activado`);
+        }
+
+        function actualizarTemperatura() {
+            const temp = document.getElementById('temperatura').value;
+            publish("tienda/salgado/ambiente/temperatura", temp, `Temperatura: ${temp}°C`);
+        }
+
+        function actualizarHumedad() {
+            const hum = document.getElementById('humedad').value;
+            publish("tienda/salgado/ambiente/humedad", hum, `Humedad: ${hum}%`);
+        }
+
+        function controlarLuces(estado) {
+            publish("tienda/salgado/iluminacion/estado", estado, `Luces ${estado}`);
+        }
+
+        function controlarVentilacion(estado) {
+            publish("tienda/salgado/ventilacion/estado", estado, `Ventilación ${estado}`);
+        }
+
+        function activarAlarmaPanico() {
+            if (confirm('⚠️ ¿ACTIVAR ALARMA DE PÁNICO?')) {
+                publish("tienda/salgado/alarma/panico", "activada", "🚨 ALARMA DE PÁNICO ACTIVADA");
+            }
+        }
+
+        function desactivarAlarmaPanico() {
+            publish("tienda/salgado/alarma/panico", "desactivada", "Alarma de pánico desactivada");
+        }
+
+        function activarEmergencia() {
+            if (confirm('⚠️ ¿ACTIVAR SISTEMA DE EMERGENCIA COMPLETO?')) {
+                publish("tienda/salgado/alarma/emergencia", "activada", "🚨 EMERGENCIA ACTIVADA");
+            }
+        }
+
+        function desactivarEmergencia() {
+            publish("tienda/salgado/alarma/emergencia", "desactivada", "Sistema de emergencia desactivado");
+        }
+
+        function initCajas() {
+            const selector = document.getElementById('cajas-selector');
+            for (let i = 1; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'caja-btn';
+                btn.textContent = `Caja ${i}`;
+                btn.onclick = () => selectCaja(i);
+                selector.appendChild(btn);
+            }
+        }
+
+        function selectCaja(id) {
+            selectedCaja = id;
+            document.querySelectorAll('.caja-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            document.getElementById('caja-selected').textContent = id;
+            document.getElementById('caja-controls').style.display = 'block';
+        }
+
+        function activarCaja() {
+            if (!selectedCaja) return;
+            publish(`tienda/salgado/caja/${selectedCaja}/estado`, "activa", `Caja ${selectedCaja} activada`);
+        }
+
+        function desactivarCaja() {
+            if (!selectedCaja) return;
+            publish(`tienda/salgado/caja/${selectedCaja}/estado`, "inactiva", `Caja ${selectedCaja} desactivada`);
+        }
+
+        function registrarVenta() {
+            if (!selectedCaja) return;
+            const monto = document.getElementById('venta-monto').value;
+            if (parseFloat(monto) <= 0) {
+                showNotification("⚠️ Ingresa un monto válido", "warning");
+                return;
+            }
+            publish(`tienda/salgado/caja/${selectedCaja}/venta`, monto, `Venta registrada: $${monto}`);
+            document.getElementById('venta-monto').value = 0;
+        }
+
+        function enviarAlertaInventario() {
+            const nombre = document.getElementById('producto-nombre').value;
+            const stock = document.getElementById('producto-stock').value;
+            const minimo = document.getElementById('producto-minimo').value;
+
+            if (!nombre) {
+                showNotification("⚠️ Ingresa el nombre del producto", "warning");
+                return;
+            }
+
+            if (parseInt(stock) >= parseInt(minimo)) {
+                showNotification("⚠️ El stock actual no está por debajo del mínimo", "warning");
+                return;
+            }
+
+            const data = JSON.stringify({
+                producto: nombre,
+                stock: parseInt(stock),
+                minimo: parseInt(minimo)
+            });
+
+            publish("tienda/salgado/inventario/alerta", data, `Alerta de inventario: ${nombre}`);
+        }
+
+        // Inicializar
+        window.addEventListener('load', () => {
+            initCajas();
+        });
+    </script>
+</body>
+
+</html>

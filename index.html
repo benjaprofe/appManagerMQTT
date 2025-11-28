@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,23 +13,28 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
+
         .animate-fade-in-up {
             animation: fadeInUp 0.6s ease-out;
         }
+
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
+
         .code-block {
             background: #1e293b;
             border-left: 4px solid #3b82f6;
         }
     </style>
 </head>
+
 <body class="bg-gray-50">
     <!-- Navigation -->
     <nav class="bg-white shadow-lg sticky top-0 z-50">
@@ -58,10 +64,12 @@
                 Aprende a construir sistemas de control y monitoreo en tiempo real
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="#proyectos" class="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition shadow-lg">
+                <a href="#proyectos"
+                    class="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition shadow-lg">
                     Ver Proyectos
                 </a>
-                <a href="#tutorial" class="bg-indigo-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-900 transition shadow-lg">
+                <a href="#tutorial"
+                    class="bg-indigo-800 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-900 transition shadow-lg">
                     Comenzar Tutorial
                 </a>
             </div>
@@ -80,7 +88,9 @@
                         <i class="fas fa-lightbulb text-4xl text-indigo-600 mb-4"></i>
                         <h3 class="text-2xl font-bold mb-3 text-gray-800">Objetivo</h3>
                         <p class="text-gray-700 leading-relaxed">
-                            Este proyecto demuestra cómo construir sistemas IoT completos utilizando el protocolo MQTT para comunicación en tiempo real entre dispositivos, paneles de control y dashboards de monitoreo.
+                            Este proyecto demuestra cómo construir sistemas IoT completos utilizando el protocolo MQTT
+                            para comunicación en tiempo real entre dispositivos, paneles de control y dashboards de
+                            monitoreo.
                         </p>
                     </div>
                     <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl shadow-md">
@@ -107,7 +117,8 @@
                                 <h4 class="text-xl font-bold text-gray-800">HiveMQ Cloud</h4>
                             </div>
                             <p class="text-gray-700 text-sm mb-3">
-                                Necesitas crear una cuenta gratuita en HiveMQ Cloud para sincronizar el MQTT y gestionar la comunicación entre dispositivos.
+                                Necesitas crear una cuenta gratuita en HiveMQ Cloud para sincronizar el MQTT y gestionar
+                                la comunicación entre dispositivos.
                             </p>
                             <a href="#tutorial" class="text-blue-600 hover:underline text-sm font-semibold">
                                 Ver tutorial de configuración →
@@ -119,7 +130,8 @@
                                 <h4 class="text-xl font-bold text-gray-800">Firebase</h4>
                             </div>
                             <p class="text-gray-700 text-sm mb-3">
-                                Requerido para visualizar las bases de datos y usar Firebase Realtime Database para almacenamiento y sincronización en tiempo real.
+                                Requerido para visualizar las bases de datos y usar Firebase Realtime Database para
+                                almacenamiento y sincronización en tiempo real.
                             </p>
                             <a href="#tutorial" class="text-orange-600 hover:underline text-sm font-semibold">
                                 Ver tutorial de configuración →
@@ -129,8 +141,10 @@
                     <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg">
                         <p class="text-sm text-gray-700">
                             <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
-                            <strong>Nota:</strong> Ambos servicios ofrecen planes gratuitos que son suficientes para este proyecto educativo. 
-                            El tutorial completo está disponible en la sección <a href="#tutorial" class="text-indigo-600 hover:underline font-semibold">Tutorial</a>.
+                            <strong>Nota:</strong> Ambos servicios ofrecen planes gratuitos que son suficientes para
+                            este proyecto educativo.
+                            El tutorial completo está disponible en la sección <a href="#tutorial"
+                                class="text-indigo-600 hover:underline font-semibold">Tutorial</a>.
                         </p>
                     </div>
                 </div>
@@ -145,16 +159,19 @@
                 <h2 class="text-4xl font-bold text-center mb-12 text-gray-800">
                     <i class="fas fa-question-circle text-indigo-600"></i> ¿Qué es MQTT?
                 </h2>
-                
+
                 <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
                     <h3 class="text-2xl font-bold mb-4 text-gray-800">
                         <i class="fas fa-broadcast-tower text-indigo-600"></i> Definición
                     </h3>
                     <p class="text-gray-700 text-lg leading-relaxed mb-4">
-                        <strong>MQTT (Message Queuing Telemetry Transport)</strong> es un protocolo de mensajería ligero diseñado específicamente para dispositivos IoT con recursos limitados y conexiones de red inestables.
+                        <strong>MQTT (Message Queuing Telemetry Transport)</strong> es un protocolo de mensajería ligero
+                        diseñado específicamente para dispositivos IoT con recursos limitados y conexiones de red
+                        inestables.
                     </p>
                     <p class="text-gray-700 leading-relaxed">
-                        Utiliza un modelo de publicación/suscripción (pub/sub) donde los dispositivos publican mensajes en "topics" y otros dispositivos se suscriben a esos topics para recibir información.
+                        Utiliza un modelo de publicación/suscripción (pub/sub) donde los dispositivos publican mensajes
+                        en "topics" y otros dispositivos se suscriben a esos topics para recibir información.
                     </p>
                 </div>
 
@@ -184,31 +201,36 @@
                         <li class="flex items-start">
                             <i class="fas fa-check-circle text-green-500 mr-3 mt-1"></i>
                             <div>
-                                <strong>Eficiencia:</strong> Requiere muy poco ancho de banda y recursos, perfecto para dispositivos con batería limitada.
+                                <strong>Eficiencia:</strong> Requiere muy poco ancho de banda y recursos, perfecto para
+                                dispositivos con batería limitada.
                             </div>
                         </li>
                         <li class="flex items-start">
                             <i class="fas fa-check-circle text-green-500 mr-3 mt-1"></i>
                             <div>
-                                <strong>Desacoplamiento:</strong> Los dispositivos no necesitan conocerse entre sí, solo el broker MQTT.
+                                <strong>Desacoplamiento:</strong> Los dispositivos no necesitan conocerse entre sí, solo
+                                el broker MQTT.
                             </div>
                         </li>
                         <li class="flex items-start">
                             <i class="fas fa-check-circle text-green-500 mr-3 mt-1"></i>
                             <div>
-                                <strong>Escalabilidad:</strong> Fácil agregar nuevos dispositivos sin modificar los existentes.
+                                <strong>Escalabilidad:</strong> Fácil agregar nuevos dispositivos sin modificar los
+                                existentes.
                             </div>
                         </li>
                         <li class="flex items-start">
                             <i class="fas fa-check-circle text-green-500 mr-3 mt-1"></i>
                             <div>
-                                <strong>Confiabilidad:</strong> Niveles de QoS (0, 1, 2) garantizan la entrega de mensajes según la importancia.
+                                <strong>Confiabilidad:</strong> Niveles de QoS (0, 1, 2) garantizan la entrega de
+                                mensajes según la importancia.
                             </div>
                         </li>
                         <li class="flex items-start">
                             <i class="fas fa-check-circle text-green-500 mr-3 mt-1"></i>
                             <div>
-                                <strong>Simplicidad:</strong> Fácil de implementar y entender, ideal para proyectos educativos.
+                                <strong>Simplicidad:</strong> Fácil de implementar y entender, ideal para proyectos
+                                educativos.
                             </div>
                         </li>
                     </ul>
@@ -249,10 +271,11 @@
             <h2 class="text-4xl font-bold text-center mb-12 text-gray-800">
                 <i class="fas fa-folder-open text-indigo-600"></i> Proyectos Disponibles
             </h2>
-            
+
             <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto">
                 <!-- Proyecto Hogar -->
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+                <div
+                    class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
                         <i class="fas fa-home text-4xl mb-3"></i>
                         <h3 class="text-2xl font-bold">Hogar Inteligente</h3>
@@ -262,17 +285,24 @@
                             Sistema completo para controlar y monitorear dispositivos de un hogar inteligente.
                         </p>
                         <div class="space-y-2 mb-4">
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de luces</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Puertas y ventanas</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Sistema de alarma</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Sensores (humo, movimiento, gas)</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de temperatura</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de
+                                luces</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Puertas y
+                                ventanas</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Sistema de
+                                alarma</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Sensores
+                                (humo, movimiento, gas)</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de
+                                temperatura</p>
                         </div>
                         <div class="flex gap-3">
-                            <a href="hogar/control.html" target="_blank" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-center hover:bg-blue-700 transition">
+                            <a href="hogar/control.html" target="_blank"
+                                class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-center hover:bg-blue-700 transition">
                                 <i class="fas fa-sliders-h mr-2"></i>Control
                             </a>
-                            <a href="hogar/dashboard.html" target="_blank" class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">
+                            <a href="hogar/dashboard.html" target="_blank"
+                                class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">
                                 <i class="fas fa-chart-line mr-2"></i>Dashboard
                             </a>
                         </div>
@@ -280,7 +310,8 @@
                 </div>
 
                 <!-- Proyecto Tren -->
-                <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+                <div
+                    class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white">
                         <i class="fas fa-train text-4xl mb-3"></i>
                         <h3 class="text-2xl font-bold">Metro Inteligente</h3>
@@ -290,17 +321,24 @@
                             Sistema para controlar y monitorear un sistema de transporte público (metro/tren).
                         </p>
                         <div class="space-y-2 mb-4">
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de velocidad</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Puertas del tren</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Freno de emergencia</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de estaciones</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo de pasajeros</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de
+                                velocidad</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Puertas del
+                                tren</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Freno de
+                                emergencia</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de
+                                estaciones</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo
+                                de pasajeros</p>
                         </div>
                         <div class="flex gap-3">
-                            <a href="tren/control.html" target="_blank" class="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg text-center hover:bg-purple-700 transition">
+                            <a href="tren/control.html" target="_blank"
+                                class="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg text-center hover:bg-purple-700 transition">
                                 <i class="fas fa-sliders-h mr-2"></i>Control
                             </a>
-                            <a href="tren/dashboard.html" target="_blank" class="flex-1 bg-pink-600 text-white px-4 py-2 rounded-lg text-center hover:bg-pink-700 transition">
+                            <a href="tren/dashboard.html" target="_blank"
+                                class="flex-1 bg-pink-600 text-white px-4 py-2 rounded-lg text-center hover:bg-pink-700 transition">
                                 <i class="fas fa-chart-line mr-2"></i>Dashboard
                             </a>
                         </div>
@@ -308,27 +346,36 @@
                 </div>
 
                 <!-- Proyecto Delivery -->
-                <div class="bg-gradient-to-br from-green-50 to-teal-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+                <div
+                    class="bg-gradient-to-br from-green-50 to-teal-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="bg-gradient-to-r from-green-600 to-teal-600 p-6 text-white">
                         <i class="fas fa-truck text-4xl mb-3"></i>
                         <h3 class="text-2xl font-bold">Sistema de Delivery</h3>
                     </div>
                     <div class="p-6">
                         <p class="text-gray-700 mb-4">
-                            Sistema completo para gestionar entregas y rastrear el recorrido de los repartidores en tiempo real.
+                            Sistema completo para gestionar entregas y rastrear el recorrido de los repartidores en
+                            tiempo real.
                         </p>
                         <div class="space-y-2 mb-4">
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Gestión de pedidos</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Rastreo en tiempo real</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Mapa de entregas</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de repartidores</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Estadísticas de entregas</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Gestión de
+                                pedidos</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Rastreo en
+                                tiempo real</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Mapa de
+                                entregas</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de
+                                repartidores</p>
+                            <p class="text-sm text-gray-600"><i
+                                    class="fas fa-check text-green-500 mr-2"></i>Estadísticas de entregas</p>
                         </div>
                         <div class="flex gap-3">
-                            <a href="delivery/control.html" target="_blank" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg text-center hover:bg-green-700 transition">
+                            <a href="delivery/control.html" target="_blank"
+                                class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg text-center hover:bg-green-700 transition">
                                 <i class="fas fa-sliders-h mr-2"></i>Control
                             </a>
-                            <a href="delivery/dashboard.html" target="_blank" class="flex-1 bg-teal-600 text-white px-4 py-2 rounded-lg text-center hover:bg-teal-700 transition">
+                            <a href="delivery/dashboard.html" target="_blank"
+                                class="flex-1 bg-teal-600 text-white px-4 py-2 rounded-lg text-center hover:bg-teal-700 transition">
                                 <i class="fas fa-chart-line mr-2"></i>Dashboard
                             </a>
                         </div>
@@ -336,27 +383,36 @@
                 </div>
 
                 <!-- Proyecto IONU -->
-                <div class="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+                <div
+                    class="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="bg-gradient-to-r from-cyan-600 to-blue-600 p-6 text-white">
                         <i class="fas fa-building text-4xl mb-3"></i>
                         <h3 class="text-2xl font-bold">IONU - Monitoreo Institucional</h3>
                     </div>
                     <div class="p-6">
                         <p class="text-gray-700 mb-4">
-                            Sistema completo de monitoreo para instituciones con seguridad, ambiente y sector de mascotas.
+                            Sistema completo de monitoreo para instituciones con seguridad, ambiente y sector de
+                            mascotas.
                         </p>
                         <div class="space-y-2 mb-4">
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Seguridad (cámaras, alarmas, accesos)</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo ambiental</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Sector de mascotas</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Riego automático</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de plantas</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Seguridad
+                                (cámaras, alarmas, accesos)</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo
+                                ambiental</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Sector de
+                                mascotas</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Riego
+                                automático</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de
+                                plantas</p>
                         </div>
                         <div class="flex gap-3">
-                            <a href="ionu/control.html" target="_blank" class="flex-1 bg-cyan-600 text-white px-4 py-2 rounded-lg text-center hover:bg-cyan-700 transition">
+                            <a href="ionu/control.html" target="_blank"
+                                class="flex-1 bg-cyan-600 text-white px-4 py-2 rounded-lg text-center hover:bg-cyan-700 transition">
                                 <i class="fas fa-sliders-h mr-2"></i>Control
                             </a>
-                            <a href="ionu/dashboard.html" target="_blank" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-center hover:bg-blue-700 transition">
+                            <a href="ionu/dashboard.html" target="_blank"
+                                class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-center hover:bg-blue-700 transition">
                                 <i class="fas fa-chart-line mr-2"></i>Dashboard
                             </a>
                         </div>
@@ -364,27 +420,36 @@
                 </div>
 
                 <!-- Proyecto Arismendi Station -->
-                <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+                <div
+                    class="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="bg-gradient-to-r from-red-600 to-orange-600 p-6 text-white">
                         <i class="fas fa-subway text-4xl mb-3"></i>
                         <h3 class="text-2xl font-bold">Estación Arismendi</h3>
                     </div>
                     <div class="p-6">
                         <p class="text-gray-700 mb-4">
-                            Sistema de control de estación de metro en Santiago de Chile. Gestión de vehículos, estacionamiento y seguridad.
+                            Sistema de control de estación de metro en Santiago de Chile. Gestión de vehículos,
+                            estacionamiento y seguridad.
                         </p>
                         <div class="space-y-2 mb-4">
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de estacionamiento</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo de vehículos</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Sistema antirrobo</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Asignación de conductores</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de seguridad avanzado</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de
+                                estacionamiento</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo
+                                de vehículos</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Sistema
+                                antirrobo</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Asignación
+                                de conductores</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de
+                                seguridad avanzado</p>
                         </div>
                         <div class="flex gap-3">
-                            <a href="arismendi-station/control.html" target="_blank" class="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg text-center hover:bg-red-700 transition">
+                            <a href="arismendi-station/control.html" target="_blank"
+                                class="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg text-center hover:bg-red-700 transition">
                                 <i class="fas fa-sliders-h mr-2"></i>Control
                             </a>
-                            <a href="arismendi-station/dashboard.html" target="_blank" class="flex-1 bg-orange-600 text-white px-4 py-2 rounded-lg text-center hover:bg-orange-700 transition">
+                            <a href="arismendi-station/dashboard.html" target="_blank"
+                                class="flex-1 bg-orange-600 text-white px-4 py-2 rounded-lg text-center hover:bg-orange-700 transition">
                                 <i class="fas fa-chart-line mr-2"></i>Dashboard
                             </a>
                         </div>
@@ -392,27 +457,36 @@
                 </div>
 
                 <!-- Proyecto Cyber -->
-                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+                <div
+                    class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
                         <i class="fas fa-desktop text-4xl mb-3"></i>
                         <h3 class="text-2xl font-bold">Monitoreo de Ciber</h3>
                     </div>
                     <div class="p-6">
                         <p class="text-gray-700 mb-4">
-                            Sistema de monitoreo para ciber con control de 10 computadores, tiempo de uso, internet y alertas.
+                            Sistema de monitoreo para ciber con control de 10 computadores, tiempo de uso, internet y
+                            alertas.
                         </p>
                         <div class="space-y-2 mb-4">
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo de 10 pantallas</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control encendido/apagado</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Tiempo de uso en tiempo real</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de acceso a internet</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Sistema de alertas</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo
+                                de 10 pantallas</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control
+                                encendido/apagado</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Tiempo de
+                                uso en tiempo real</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de
+                                acceso a internet</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Sistema de
+                                alertas</p>
                         </div>
                         <div class="flex gap-3">
-                            <a href="cyber/control.html" target="_blank" class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">
+                            <a href="cyber/control.html" target="_blank"
+                                class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg text-center hover:bg-indigo-700 transition">
                                 <i class="fas fa-sliders-h mr-2"></i>Control
                             </a>
-                            <a href="cyber/dashboard.html" target="_blank" class="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg text-center hover:bg-purple-700 transition">
+                            <a href="cyber/dashboard.html" target="_blank"
+                                class="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg text-center hover:bg-purple-700 transition">
                                 <i class="fas fa-chart-line mr-2"></i>Dashboard
                             </a>
                         </div>
@@ -420,27 +494,36 @@
                 </div>
 
                 <!-- Proyecto SmartPost (Oscar) -->
-                <div class="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+                <div
+                    class="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
                     <div class="bg-gradient-to-r from-yellow-600 to-amber-600 p-6 text-white">
                         <i class="fas fa-mail-bulk text-4xl mb-3"></i>
                         <h3 class="text-2xl font-bold">SmartPost</h3>
                     </div>
                     <div class="p-6">
                         <p class="text-gray-700 mb-4">
-                            Sistema de buzón inteligente IoT que detecta correo en tiempo real y notifica al usuario instantáneamente.
+                            Sistema de buzón inteligente IoT que detecta correo en tiempo real y notifica al usuario
+                            instantáneamente.
                         </p>
                         <div class="space-y-2 mb-4">
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Detección automática de correo</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Notificaciones en tiempo real</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Integración con Firebase</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo 24/7</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Seguridad mejorada</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Detección
+                                automática de correo</p>
+                            <p class="text-sm text-gray-600"><i
+                                    class="fas fa-check text-green-500 mr-2"></i>Notificaciones en tiempo real</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Integración
+                                con Firebase</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo
+                                24/7</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Seguridad
+                                mejorada</p>
                         </div>
                         <div class="flex gap-3">
-                            <a href="oscar/readme.md" target="_blank" class="flex-1 bg-yellow-600 text-white px-4 py-2 rounded-lg text-center hover:bg-yellow-700 transition">
+                            <a href="oscar/readme.md" target="_blank"
+                                class="flex-1 bg-yellow-600 text-white px-4 py-2 rounded-lg text-center hover:bg-yellow-700 transition">
                                 <i class="fas fa-info-circle mr-2"></i>Info
                             </a>
-                            <span class="flex-1 bg-gray-400 text-white px-4 py-2 rounded-lg text-center cursor-not-allowed">
+                            <span
+                                class="flex-1 bg-gray-400 text-white px-4 py-2 rounded-lg text-center cursor-not-allowed">
                                 <i class="fas fa-clock mr-2"></i>Próximamente
                             </span>
                         </div>
@@ -448,229 +531,210 @@
                 </div>
 
                 <!-- Proyecto Casino (Acevedo) -->
-                <div class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
-                    <div class="bg-gradient-to-r from-pink-600 to-rose-600 p-6 text-white">
-                        <i class="fas fa-dice text-4xl mb-3"></i>
-                        <h3 class="text-2xl font-bold">Casino Inteligente</h3>
+                <div
+                    class="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+                    <div class="bg-gradient-to-r from-amber-600 to-yellow-600 p-6 text-white">
+                        <i class="fas fa-crown text-4xl mb-3"></i>
+                        <h3 class="text-2xl font-bold">Acevedo Casino</h3>
                     </div>
                     <div class="p-6">
                         <p class="text-gray-700 mb-4">
-                            Sistema completo de monitoreo para casino con control de acceso, mesas, tragamonedas y balances.
+                            Sistema completo de monitoreo para casino con control de mesas, tragamonedas, finanzas,
+                            seguridad y ambiente.
                         </p>
                         <div class="space-y-2 mb-4">
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de acceso y salida</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo de mesas y jugadores</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo de tragamonedas</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Detección de jackpots</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de cajas y balances</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>30 Mesas de
+                                juego</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>30
+                                Tragamonedas</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Detección
+                                de jackpots</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de
+                                seguridad</p>
+                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Gestión
+                                financiera</p>
                         </div>
-                        <div class="flex gap-3">
-                            <a href="acevedo-casino/readme.md" target="_blank" class="flex-1 bg-pink-600 text-white px-4 py-2 rounded-lg text-center hover:bg-pink-700 transition">
-                                <i class="fas fa-info-circle mr-2"></i>Info
-                            </a>
-                            <span class="flex-1 bg-gray-400 text-white px-4 py-2 rounded-lg text-center cursor-not-allowed">
-                                <i class="fas fa-clock mr-2"></i>Próximamente
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                        <section id="tutorial" class="py-16 bg-gray-100">
+                            <div class="container mx-auto px-6">
+                                <div class="max-w-4xl mx-auto">
+                                    <h2 class="text-4xl font-bold text-center mb-12 text-gray-800">
+                                        <i class="fas fa-graduation-cap text-indigo-600"></i> Tutorial: Cómo Usar MQTT
+                                    </h2>
 
-                <!-- Proyecto Seguridad Celular (Duran) -->
-                <div class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
-                    <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white">
-                        <i class="fas fa-mobile-alt text-4xl mb-3"></i>
-                        <h3 class="text-2xl font-bold">Seguridad Móvil</h3>
-                    </div>
-                    <div class="p-6">
-                        <p class="text-gray-700 mb-4">
-                            Aplicación de seguridad para celular con geolocalización en tiempo real, detección de movimientos y botón de pánico.
-                        </p>
-                        <div class="space-y-2 mb-4">
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Geolocalización en tiempo real</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Detección de movimientos</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Botón de pánico</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Mapa en vivo</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Historial de ubicaciones</p>
-                        </div>
-                        <div class="flex gap-3">
-                            <a href="duran/readme.md" target="_blank" class="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-lg text-center hover:bg-emerald-700 transition">
-                                <i class="fas fa-info-circle mr-2"></i>Info
-                            </a>
-                            <span class="flex-1 bg-gray-400 text-white px-4 py-2 rounded-lg text-center cursor-not-allowed">
-                                <i class="fas fa-clock mr-2"></i>Próximamente
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                                    <!-- Step 1 -->
+                                    <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                                        <div class="flex items-center mb-4">
+                                            <div
+                                                class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">
+                                                1</div>
+                                            <h3 class="text-2xl font-bold text-gray-800">Crear Cuenta en HiveMQ Cloud
+                                            </h3>
+                                        </div>
+                                        <p class="text-gray-700 mb-4">
+                                            Para este proyecto necesitas crear una cuenta en <strong>HiveMQ
+                                                Cloud</strong> para sincronizar
+                                            el MQTT. Es gratuito y perfecto para proyectos educativos.
+                                        </p>
 
-                <!-- Proyecto Tienda Inteligente (Salgado) -->
-                <div class="bg-gradient-to-br from-violet-50 to-fuchsia-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
-                    <div class="bg-gradient-to-r from-violet-600 to-fuchsia-600 p-6 text-white">
-                        <i class="fas fa-store text-4xl mb-3"></i>
-                        <h3 class="text-2xl font-bold">Tienda Inteligente</h3>
-                    </div>
-                    <div class="p-6">
-                        <p class="text-gray-700 mb-4">
-                            Sistema inteligente para tiendas con control de acceso, iluminación, ventilación, alarmas y monitoreo de inventario.
-                        </p>
-                        <div class="space-y-2 mb-4">
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de acceso y puertas</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Control de iluminación</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Monitoreo de 10 cajas</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Alerta de inventario</p>
-                            <p class="text-sm text-gray-600"><i class="fas fa-check text-green-500 mr-2"></i>Sistema de emergencia</p>
-                        </div>
-                        <div class="flex gap-3">
-                            <a href="salgado/readme.md" target="_blank" class="flex-1 bg-violet-600 text-white px-4 py-2 rounded-lg text-center hover:bg-violet-700 transition">
-                                <i class="fas fa-info-circle mr-2"></i>Info
-                            </a>
-                            <span class="flex-1 bg-gray-400 text-white px-4 py-2 rounded-lg text-center cursor-not-allowed">
-                                <i class="fas fa-clock mr-2"></i>Próximamente
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+                                        <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg mb-4">
+                                            <h4 class="font-bold text-lg mb-3 text-gray-800">
+                                                <i class="fas fa-cloud text-blue-600 mr-2"></i>Pasos para crear cuenta
+                                                en HiveMQ Cloud:
+                                            </h4>
+                                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                                <li>Visita <a href="https://www.hivemq.com/cloud/" target="_blank"
+                                                        class="text-blue-600 hover:underline font-semibold">hivemq.com/cloud</a>
+                                                </li>
+                                                <li>Haz clic en <strong>"Start Free"</strong> o <strong>"Sign
+                                                        Up"</strong></li>
+                                                <li>Completa el formulario de registro con tu email</li>
+                                                <li>Verifica tu email (revisa tu bandeja de entrada)</li>
+                                                <li>Inicia sesión en tu cuenta</li>
+                                                <li>Crea un nuevo cluster (elige la opción gratuita)</li>
+                                                <li>Selecciona la región más cercana a ti</li>
+                                                <li>Una vez creado, ve a <strong>"Access Management"</strong> →
+                                                    <strong>"Credentials"</strong>
+                                                </li>
+                                                <li>Crea un nuevo usuario con contraseña</li>
+                                                <li>Copia la <strong>URL del broker</strong> (formato: <code
+                                                        class="bg-gray-200 px-1 rounded">wss://xxxxx.s1.eu.hivemq.cloud:8884/mqtt</code>)
+                                                </li>
+                                                <li>Guarda tu <strong>username</strong> y <strong>password</strong> de
+                                                    forma segura</li>
+                                            </ol>
+                                        </div>
 
-    <!-- Tutorial Section -->
-    <section id="tutorial" class="py-16 bg-gray-100">
-        <div class="container mx-auto px-6">
-            <div class="max-w-4xl mx-auto">
-                <h2 class="text-4xl font-bold text-center mb-12 text-gray-800">
-                    <i class="fas fa-graduation-cap text-indigo-600"></i> Tutorial: Cómo Usar MQTT
-                </h2>
+                                        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mb-4">
+                                            <p class="text-sm text-gray-700">
+                                                <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                                                <strong>Importante:</strong> El plan gratuito permite hasta 25
+                                                conexiones simultáneas, lo
+                                                cual es suficiente para este proyecto.
+                                            </p>
+                                        </div>
 
-                <!-- Step 1 -->
-                <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
-                    <div class="flex items-center mb-4">
-                        <div class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">1</div>
-                        <h3 class="text-2xl font-bold text-gray-800">Crear Cuenta en HiveMQ Cloud</h3>
-                    </div>
-                    <p class="text-gray-700 mb-4">
-                        Para este proyecto necesitas crear una cuenta en <strong>HiveMQ Cloud</strong> para sincronizar el MQTT. Es gratuito y perfecto para proyectos educativos.
-                    </p>
-                    
-                    <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg mb-4">
-                        <h4 class="font-bold text-lg mb-3 text-gray-800">
-                            <i class="fas fa-cloud text-blue-600 mr-2"></i>Pasos para crear cuenta en HiveMQ Cloud:
-                        </h4>
-                        <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                            <li>Visita <a href="https://www.hivemq.com/cloud/" target="_blank" class="text-blue-600 hover:underline font-semibold">hivemq.com/cloud</a></li>
-                            <li>Haz clic en <strong>"Start Free"</strong> o <strong>"Sign Up"</strong></li>
-                            <li>Completa el formulario de registro con tu email</li>
-                            <li>Verifica tu email (revisa tu bandeja de entrada)</li>
-                            <li>Inicia sesión en tu cuenta</li>
-                            <li>Crea un nuevo cluster (elige la opción gratuita)</li>
-                            <li>Selecciona la región más cercana a ti</li>
-                            <li>Una vez creado, ve a <strong>"Access Management"</strong> → <strong>"Credentials"</strong></li>
-                            <li>Crea un nuevo usuario con contraseña</li>
-                            <li>Copia la <strong>URL del broker</strong> (formato: <code class="bg-gray-200 px-1 rounded">wss://xxxxx.s1.eu.hivemq.cloud:8884/mqtt</code>)</li>
-                            <li>Guarda tu <strong>username</strong> y <strong>password</strong> de forma segura</li>
-                        </ol>
-                    </div>
+                                        <div class="bg-gray-50 p-4 rounded-lg">
+                                            <p class="text-sm text-gray-600 mb-2"><strong>Alternativas de
+                                                    Broker:</strong></p>
+                                            <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                                <li>HiveMQ Cloud (recomendado para este proyecto)</li>
+                                                <li>Mosquitto (broker local gratuito)</li>
+                                                <li>AWS IoT Core</li>
+                                                <li>Azure IoT Hub</li>
+                                            </ul>
+                                        </div>
+                                    </div>
 
-                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mb-4">
-                        <p class="text-sm text-gray-700">
-                            <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
-                            <strong>Importante:</strong> El plan gratuito permite hasta 25 conexiones simultáneas, lo cual es suficiente para este proyecto.
-                        </p>
-                    </div>
+                                    <!-- Step 1.5 - Firebase -->
+                                    <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                                        <div class="flex items-center mb-4">
+                                            <div
+                                                class="bg-orange-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">
+                                                1.5</div>
+                                            <h3 class="text-2xl font-bold text-gray-800">Crear Cuenta en Firebase</h3>
+                                        </div>
+                                        <p class="text-gray-700 mb-4">
+                                            Para visualizar las bases de datos y usar Firebase Realtime Database,
+                                            necesitas crear una cuenta
+                                            en Firebase.
+                                        </p>
 
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="text-sm text-gray-600 mb-2"><strong>Alternativas de Broker:</strong></p>
-                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            <li>HiveMQ Cloud (recomendado para este proyecto)</li>
-                            <li>Mosquitto (broker local gratuito)</li>
-                            <li>AWS IoT Core</li>
-                            <li>Azure IoT Hub</li>
-                        </ul>
-                    </div>
-                </div>
+                                        <div class="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-lg mb-4">
+                                            <h4 class="font-bold text-lg mb-3 text-gray-800">
+                                                <i class="fas fa-database text-orange-600 mr-2"></i>Pasos para crear
+                                                cuenta en Firebase:
+                                            </h4>
+                                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                                <li>Visita <a href="https://console.firebase.google.com/"
+                                                        target="_blank"
+                                                        class="text-orange-600 hover:underline font-semibold">console.firebase.google.com</a>
+                                                </li>
+                                                <li>Haz clic en <strong>"Comenzar"</strong> o <strong>"Get
+                                                        Started"</strong></li>
+                                                <li>Inicia sesión con tu cuenta de Google (o crea una si no tienes)</li>
+                                                <li>Haz clic en <strong>"Agregar proyecto"</strong> o <strong>"Add
+                                                        project"</strong></li>
+                                                <li>Ingresa un nombre para tu proyecto (ej: "iot-mqtt-project")</li>
+                                                <li>Acepta los términos y condiciones</li>
+                                                <li>Opcional: Desactiva Google Analytics si no lo necesitas</li>
+                                                <li>Haz clic en <strong>"Crear proyecto"</strong></li>
+                                                <li>Espera a que se cree el proyecto (puede tardar unos minutos)</li>
+                                                <li>En el menú lateral, ve a <strong>"Realtime Database"</strong></li>
+                                                <li>Haz clic en <strong>"Crear base de datos"</strong></li>
+                                                <li>Elige la ubicación más cercana</li>
+                                                <li>Para desarrollo, inicia en <strong>"modo de prueba"</strong> (puedes
+                                                    cambiar las reglas
+                                                    después)</li>
+                                                <li>Copia la <strong>URL de la base de datos</strong> (formato: <code
+                                                        class="bg-gray-200 px-1 rounded">https://tu-proyecto-default-rtdb.firebaseio.com/</code>)
+                                                </li>
+                                            </ol>
+                                        </div>
 
-                <!-- Step 1.5 - Firebase -->
-                <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
-                    <div class="flex items-center mb-4">
-                        <div class="bg-orange-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">1.5</div>
-                        <h3 class="text-2xl font-bold text-gray-800">Crear Cuenta en Firebase</h3>
-                    </div>
-                    <p class="text-gray-700 mb-4">
-                        Para visualizar las bases de datos y usar Firebase Realtime Database, necesitas crear una cuenta en Firebase.
-                    </p>
-                    
-                    <div class="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-lg mb-4">
-                        <h4 class="font-bold text-lg mb-3 text-gray-800">
-                            <i class="fas fa-database text-orange-600 mr-2"></i>Pasos para crear cuenta en Firebase:
-                        </h4>
-                        <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                            <li>Visita <a href="https://console.firebase.google.com/" target="_blank" class="text-orange-600 hover:underline font-semibold">console.firebase.google.com</a></li>
-                            <li>Haz clic en <strong>"Comenzar"</strong> o <strong>"Get Started"</strong></li>
-                            <li>Inicia sesión con tu cuenta de Google (o crea una si no tienes)</li>
-                            <li>Haz clic en <strong>"Agregar proyecto"</strong> o <strong>"Add project"</strong></li>
-                            <li>Ingresa un nombre para tu proyecto (ej: "iot-mqtt-project")</li>
-                            <li>Acepta los términos y condiciones</li>
-                            <li>Opcional: Desactiva Google Analytics si no lo necesitas</li>
-                            <li>Haz clic en <strong>"Crear proyecto"</strong></li>
-                            <li>Espera a que se cree el proyecto (puede tardar unos minutos)</li>
-                            <li>En el menú lateral, ve a <strong>"Realtime Database"</strong></li>
-                            <li>Haz clic en <strong>"Crear base de datos"</strong></li>
-                            <li>Elige la ubicación más cercana</li>
-                            <li>Para desarrollo, inicia en <strong>"modo de prueba"</strong> (puedes cambiar las reglas después)</li>
-                            <li>Copia la <strong>URL de la base de datos</strong> (formato: <code class="bg-gray-200 px-1 rounded">https://tu-proyecto-default-rtdb.firebaseio.com/</code>)</li>
-                        </ol>
-                    </div>
-
-                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4">
-                        <h4 class="font-bold mb-2 text-gray-800">
-                            <i class="fas fa-cog text-blue-600 mr-2"></i>Configurar Reglas de Seguridad:
-                        </h4>
-                        <p class="text-sm text-gray-700 mb-2">
-                            En <strong>"Reglas"</strong> de Realtime Database, para desarrollo puedes usar:
-                        </p>
-                        <div class="code-block p-3 rounded text-white text-xs overflow-x-auto">
-                            <pre><code>{
+                                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4">
+                                            <h4 class="font-bold mb-2 text-gray-800">
+                                                <i class="fas fa-cog text-blue-600 mr-2"></i>Configurar Reglas de
+                                                Seguridad:
+                                            </h4>
+                                            <p class="text-sm text-gray-700 mb-2">
+                                                En <strong>"Reglas"</strong> de Realtime Database, para desarrollo
+                                                puedes usar:
+                                            </p>
+                                            <div class="code-block p-3 rounded text-white text-xs overflow-x-auto">
+                                                <pre><code>{
   "rules": {
     ".read": true,
     ".write": true
   }
 }</code></pre>
-                        </div>
-                        <p class="text-xs text-gray-600 mt-2">
-                            <i class="fas fa-exclamation-triangle text-yellow-600 mr-1"></i>
-                            <strong>Nota:</strong> Estas reglas permiten lectura/escritura a todos. Para producción, configura reglas más restrictivas.
-                        </p>
-                    </div>
+                                            </div>
+                                            <p class="text-xs text-gray-600 mt-2">
+                                                <i class="fas fa-exclamation-triangle text-yellow-600 mr-1"></i>
+                                                <strong>Nota:</strong> Estas reglas permiten lectura/escritura a todos.
+                                                Para producción,
+                                                configura reglas más restrictivas.
+                                            </p>
+                                        </div>
 
-                    <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
-                        <p class="text-sm text-gray-700">
-                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
-                            <strong>Ventajas de Firebase:</strong> Base de datos en tiempo real, sincronización automática, fácil integración con aplicaciones web, y plan gratuito generoso.
-                        </p>
-                    </div>
-                </div>
+                                        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+                                            <p class="text-sm text-gray-700">
+                                                <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                                                <strong>Ventajas de Firebase:</strong> Base de datos en tiempo real,
+                                                sincronización
+                                                automática, fácil integración con aplicaciones web, y plan gratuito
+                                                generoso.
+                                            </p>
+                                        </div>
+                                    </div>
 
-                <!-- Step 2 -->
-                <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
-                    <div class="flex items-center mb-4">
-                        <div class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">2</div>
-                        <h3 class="text-2xl font-bold text-gray-800">Configurar Credenciales MQTT</h3>
-                    </div>
-                    <p class="text-gray-700 mb-4">
-                        Edita el archivo <code class="bg-gray-200 px-2 py-1 rounded">env/credential.js</code> con las credenciales que obtuviste de HiveMQ Cloud.
-                    </p>
-                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4">
-                        <p class="text-sm text-gray-700 mb-2">
-                            <strong>Datos que necesitas de HiveMQ Cloud:</strong>
-                        </p>
-                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            <li>URL del broker (ej: <code class="bg-gray-200 px-1 rounded">wss://xxxxx.s1.eu.hivemq.cloud:8884/mqtt</code>)</li>
-                            <li>Username (el que creaste en Access Management)</li>
-                            <li>Password (la contraseña que configuraste)</li>
-                        </ul>
-                    </div>
-                    <div class="code-block p-4 rounded-lg text-white text-sm overflow-x-auto">
-                        <pre><code>const mqttConfig = {
+                                    <!-- Step 2 -->
+                                    <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                                        <div class="flex items-center mb-4">
+                                            <div
+                                                class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">
+                                                2</div>
+                                            <h3 class="text-2xl font-bold text-gray-800">Configurar Credenciales MQTT
+                                            </h3>
+                                        </div>
+                                        <p class="text-gray-700 mb-4">
+                                            Edita el archivo <code
+                                                class="bg-gray-200 px-2 py-1 rounded">env/credential.js</code> con las
+                                            credenciales que obtuviste de HiveMQ Cloud.
+                                        </p>
+                                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-4">
+                                            <p class="text-sm text-gray-700 mb-2">
+                                                <strong>Datos que necesitas de HiveMQ Cloud:</strong>
+                                            </p>
+                                            <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                                <li>URL del broker (ej: <code
+                                                        class="bg-gray-200 px-1 rounded">wss://xxxxx.s1.eu.hivemq.cloud:8884/mqtt</code>)
+                                                </li>
+                                                <li>Username (el que creaste en Access Management)</li>
+                                                <li>Password (la contraseña que configuraste)</li>
+                                            </ul>
+                                        </div>
+                                        <div class="code-block p-4 rounded-lg text-white text-sm overflow-x-auto">
+                                            <pre><code>const mqttConfig = {
   client_hogar: {
     // URL de HiveMQ Cloud (copia desde tu dashboard)
     url: "wss://xxxxx.s1.eu.hivemq.cloud:8884/mqtt",
@@ -695,26 +759,34 @@
     }
   }
 };</code></pre>
-                    </div>
-                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mt-4">
-                        <p class="text-sm text-gray-700">
-                            <i class="fas fa-shield-alt text-yellow-600 mr-2"></i>
-                            <strong>Seguridad:</strong> No compartas tus credenciales públicamente. El archivo <code>env/credential.js</code> debería estar en <code>.gitignore</code> si usas Git.
-                        </p>
-                    </div>
-                </div>
+                                        </div>
+                                        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mt-4">
+                                            <p class="text-sm text-gray-700">
+                                                <i class="fas fa-shield-alt text-yellow-600 mr-2"></i>
+                                                <strong>Seguridad:</strong> No compartas tus credenciales públicamente.
+                                                El archivo
+                                                <code>env/credential.js</code> debería estar en <code>.gitignore</code>
+                                                si usas Git.
+                                            </p>
+                                        </div>
+                                    </div>
 
-                <!-- Step 3 -->
-                <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
-                    <div class="flex items-center mb-4">
-                        <div class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">3</div>
-                        <h3 class="text-2xl font-bold text-gray-800">Conectar un Cliente</h3>
-                    </div>
-                    <p class="text-gray-700 mb-4">
-                        Usa la función <code class="bg-gray-200 px-2 py-1 rounded">createMqttClient()</code> para crear una conexión.
-                    </p>
-                    <div class="code-block p-4 rounded-lg text-white text-sm overflow-x-auto mb-4">
-                        <pre><code>// Incluir el script de credenciales
+                                    <!-- Step 3 -->
+                                    <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                                        <div class="flex items-center mb-4">
+                                            <div
+                                                class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">
+                                                3</div>
+                                            <h3 class="text-2xl font-bold text-gray-800">Conectar un Cliente</h3>
+                                        </div>
+                                        <p class="text-gray-700 mb-4">
+                                            Usa la función <code
+                                                class="bg-gray-200 px-2 py-1 rounded">createMqttClient()</code> para
+                                            crear
+                                            una conexión.
+                                        </p>
+                                        <div class="code-block p-4 rounded-lg text-white text-sm overflow-x-auto mb-4">
+                                            <pre><code>// Incluir el script de credenciales
 &lt;script src="../env/credential.js"&gt;&lt;/script&gt;
 
 // Crear el cliente
@@ -728,20 +800,24 @@ client.on('connect', () => {
 client.on('error', (error) => {
   console.error('❌ Error:', error);
 });</code></pre>
-                    </div>
-                </div>
+                                        </div>
+                                    </div>
 
-                <!-- Step 4 -->
-                <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
-                    <div class="flex items-center mb-4">
-                        <div class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">4</div>
-                        <h3 class="text-2xl font-bold text-gray-800">Publicar Mensajes (Publisher)</h3>
-                    </div>
-                    <p class="text-gray-700 mb-4">
-                        Para enviar mensajes, usa el método <code class="bg-gray-200 px-2 py-1 rounded">publish()</code>.
-                    </p>
-                    <div class="code-block p-4 rounded-lg text-white text-sm overflow-x-auto mb-4">
-                        <pre><code>// Publicar un mensaje
+                                    <!-- Step 4 -->
+                                    <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                                        <div class="flex items-center mb-4">
+                                            <div
+                                                class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">
+                                                4</div>
+                                            <h3 class="text-2xl font-bold text-gray-800">Publicar Mensajes (Publisher)
+                                            </h3>
+                                        </div>
+                                        <p class="text-gray-700 mb-4">
+                                            Para enviar mensajes, usa el método <code
+                                                class="bg-gray-200 px-2 py-1 rounded">publish()</code>.
+                                        </p>
+                                        <div class="code-block p-4 rounded-lg text-white text-sm overflow-x-auto mb-4">
+                                            <pre><code>// Publicar un mensaje
 client.publish('hogar/living/luz/set', 'on', { qos: 1 }, (err) => {
   if (err) {
     console.error('Error:', err);
@@ -751,26 +827,31 @@ client.publish('hogar/living/luz/set', 'on', { qos: 1 }, (err) => {
 });
 
 // Sintaxis: client.publish(topic, mensaje, opciones, callback)</code></pre>
-                    </div>
-                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                        <p class="text-sm text-gray-700">
-                            <strong>Tip:</strong> El parámetro <code>qos</code> (Quality of Service) puede ser 0, 1 o 2. 
-                            QoS 1 garantiza que el mensaje se entregue al menos una vez.
-                        </p>
-                    </div>
-                </div>
+                                        </div>
+                                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                                            <p class="text-sm text-gray-700">
+                                                <strong>Tip:</strong> El parámetro <code>qos</code> (Quality of Service)
+                                                puede ser 0, 1 o 2.
+                                                QoS 1 garantiza que el mensaje se entregue al menos una vez.
+                                            </p>
+                                        </div>
+                                    </div>
 
-                <!-- Step 5 -->
-                <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
-                    <div class="flex items-center mb-4">
-                        <div class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">5</div>
-                        <h3 class="text-2xl font-bold text-gray-800">Suscribirse a Topics (Subscriber)</h3>
-                    </div>
-                    <p class="text-gray-700 mb-4">
-                        Para recibir mensajes, suscríbete a un topic usando <code class="bg-gray-200 px-2 py-1 rounded">subscribe()</code>.
-                    </p>
-                    <div class="code-block p-4 rounded-lg text-white text-sm overflow-x-auto mb-4">
-                        <pre><code>// Suscribirse a un topic específico
+                                    <!-- Step 5 -->
+                                    <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                                        <div class="flex items-center mb-4">
+                                            <div
+                                                class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">
+                                                5</div>
+                                            <h3 class="text-2xl font-bold text-gray-800">Suscribirse a Topics
+                                                (Subscriber)</h3>
+                                        </div>
+                                        <p class="text-gray-700 mb-4">
+                                            Para recibir mensajes, suscríbete a un topic usando <code
+                                                class="bg-gray-200 px-2 py-1 rounded">subscribe()</code>.
+                                        </p>
+                                        <div class="code-block p-4 rounded-lg text-white text-sm overflow-x-auto mb-4">
+                                            <pre><code>// Suscribirse a un topic específico
 client.subscribe('hogar/living/luz/state', { qos: 1 }, (err, granted) => {
   if (err) {
     console.error('Error:', err);
@@ -782,25 +863,31 @@ client.subscribe('hogar/living/luz/state', { qos: 1 }, (err, granted) => {
 // Suscribirse a múltiples topics con wildcard
 client.subscribe('hogar/#', { qos: 1 }); // # = todos los subtopics
 client.subscribe('hogar/+/luz/+', { qos: 1 }); // + = cualquier nivel</code></pre>
-                    </div>
-                    <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
-                        <p class="text-sm text-gray-700">
-                            <strong>Wildcards:</strong> Usa <code>#</code> para todos los subtopics y <code>+</code> para un nivel específico.
-                        </p>
-                    </div>
-                </div>
+                                        </div>
+                                        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                                            <p class="text-sm text-gray-700">
+                                                <strong>Wildcards:</strong> Usa <code>#</code> para todos los subtopics
+                                                y <code>+</code>
+                                                para un nivel específico.
+                                            </p>
+                                        </div>
+                                    </div>
 
-                <!-- Step 6 -->
-                <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
-                    <div class="flex items-center mb-4">
-                        <div class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">6</div>
-                        <h3 class="text-2xl font-bold text-gray-800">Recibir Mensajes</h3>
-                    </div>
-                    <p class="text-gray-700 mb-4">
-                        Escucha el evento <code class="bg-gray-200 px-2 py-1 rounded">message</code> para recibir mensajes.
-                    </p>
-                    <div class="code-block p-4 rounded-lg text-white text-sm overflow-x-auto mb-4">
-                        <pre><code>client.on('message', (topic, message) => {
+                                    <!-- Step 6 -->
+                                    <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                                        <div class="flex items-center mb-4">
+                                            <div
+                                                class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">
+                                                6</div>
+                                            <h3 class="text-2xl font-bold text-gray-800">Recibir Mensajes</h3>
+                                        </div>
+                                        <p class="text-gray-700 mb-4">
+                                            Escucha el evento <code class="bg-gray-200 px-2 py-1 rounded">message</code>
+                                            para recibir
+                                            mensajes.
+                                        </p>
+                                        <div class="code-block p-4 rounded-lg text-white text-sm overflow-x-auto mb-4">
+                                            <pre><code>client.on('message', (topic, message) => {
   // message es un Buffer, conviértelo a string
   const msg = message.toString();
   
@@ -811,119 +898,140 @@ client.subscribe('hogar/+/luz/+', { qos: 1 }); // + = cualquier nivel</code></pr
     actualizarLuz(msg); // 'on' o 'off'
   }
 });</code></pre>
-                    </div>
-                </div>
+                                        </div>
+                                    </div>
 
-                <!-- Step 7 -->
-                <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
-                    <div class="flex items-center mb-4">
-                        <div class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">7</div>
-                        <h3 class="text-2xl font-bold text-gray-800">Convención de Topics</h3>
-                    </div>
-                    <p class="text-gray-700 mb-4">
-                        Sigue una convención clara para organizar tus topics.
-                    </p>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="text-sm text-gray-700 mb-2"><strong>Estructura recomendada:</strong></p>
-                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            <li><code>proyecto/dispositivo/estado</code> - Para estados (ej: <code>hogar/living/luz/state</code>)</li>
-                            <li><code>proyecto/dispositivo/set</code> - Para comandos (ej: <code>hogar/living/luz/set</code>)</li>
-                            <li><code>proyecto/sensor/tipo</code> - Para sensores (ej: <code>hogar/sensor/humo</code>)</li>
-                        </ul>
-                    </div>
-                </div>
+                                    <!-- Step 7 -->
+                                    <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                                        <div class="flex items-center mb-4">
+                                            <div
+                                                class="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">
+                                                7</div>
+                                            <h3 class="text-2xl font-bold text-gray-800">Convención de Topics</h3>
+                                        </div>
+                                        <p class="text-gray-700 mb-4">
+                                            Sigue una convención clara para organizar tus topics.
+                                        </p>
+                                        <div class="bg-gray-50 p-4 rounded-lg">
+                                            <p class="text-sm text-gray-700 mb-2"><strong>Estructura
+                                                    recomendada:</strong></p>
+                                            <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                                <li><code>proyecto/dispositivo/estado</code> - Para estados (ej:
+                                                    <code>hogar/living/luz/state</code>)
+                                                </li>
+                                                <li><code>proyecto/dispositivo/set</code> - Para comandos (ej:
+                                                    <code>hogar/living/luz/set</code>)
+                                                </li>
+                                                <li><code>proyecto/sensor/tipo</code> - Para sensores (ej:
+                                                    <code>hogar/sensor/humo</code>)
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
 
-                <!-- Best Practices -->
-                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg p-8 text-white">
-                    <h3 class="text-2xl font-bold mb-4">
-                        <i class="fas fa-star mr-2"></i> Mejores Prácticas
-                    </h3>
-                    <ul class="space-y-3">
-                        <li class="flex items-start">
-                            <i class="fas fa-check-circle mr-3 mt-1"></i>
-                            <div>
-                                <strong>Usa QoS 1</strong> para mensajes importantes que no pueden perderse
+                                    <!-- Best Practices -->
+                                    <div
+                                        class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg p-8 text-white">
+                                        <h3 class="text-2xl font-bold mb-4">
+                                            <i class="fas fa-star mr-2"></i> Mejores Prácticas
+                                        </h3>
+                                        <ul class="space-y-3">
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check-circle mr-3 mt-1"></i>
+                                                <div>
+                                                    <strong>Usa QoS 1</strong> para mensajes importantes que no pueden
+                                                    perderse
+                                                </div>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check-circle mr-3 mt-1"></i>
+                                                <div>
+                                                    <strong>Maneja errores</strong> siempre con callbacks y eventos
+                                                    'error'
+                                                </div>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check-circle mr-3 mt-1"></i>
+                                                <div>
+                                                    <strong>Implementa reconexión</strong> automática para conexiones
+                                                    inestables
+                                                </div>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check-circle mr-3 mt-1"></i>
+                                                <div>
+                                                    <strong>Organiza topics</strong> de forma jerárquica y consistente
+                                                </div>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check-circle mr-3 mt-1"></i>
+                                                <div>
+                                                    <strong>Valida mensajes</strong> antes de procesarlos
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-check-circle mr-3 mt-1"></i>
-                            <div>
-                                <strong>Maneja errores</strong> siempre con callbacks y eventos 'error'
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-check-circle mr-3 mt-1"></i>
-                            <div>
-                                <strong>Implementa reconexión</strong> automática para conexiones inestables
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-check-circle mr-3 mt-1"></i>
-                            <div>
-                                <strong>Organiza topics</strong> de forma jerárquica y consistente
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-check-circle mr-3 mt-1"></i>
-                            <div>
-                                <strong>Valida mensajes</strong> antes de procesarlos
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
+                        </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12">
-        <div class="container mx-auto px-6">
-            <div class="grid md:grid-cols-3 gap-8">
-                <div>
-                    <h3 class="text-xl font-bold mb-4">Proyecto IoT MQTT</h3>
-                    <p class="text-gray-400">
-                        Sistema educativo para aprender comunicación IoT con MQTT
-                    </p>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold mb-4">Enlaces Rápidos</h3>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#inicio" class="hover:text-white transition">Inicio</a></li>
-                        <li><a href="#mqtt" class="hover:text-white transition">¿Qué es MQTT?</a></li>
-                        <li><a href="#proyectos" class="hover:text-white transition">Proyectos</a></li>
-                        <li><a href="#tutorial" class="hover:text-white transition">Tutorial</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold mb-4">Recursos</h3>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="README.md" class="hover:text-white transition">Documentación</a></li>
-                        <li><a href="hogar/INSTRUCCIONES.md" class="hover:text-white transition">Hogar Inteligente</a></li>
-                        <li><a href="tren/INSTRUCCIONES.md" class="hover:text-white transition">Metro Inteligente</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2024 Proyecto IoT MQTT. Uso educativo y demostrativo.</p>
-            </div>
-        </div>
-    </footer>
+                        <!-- Footer -->
+                        <footer class="bg-gray-800 text-white py-12">
+                            <div class="container mx-auto px-6">
+                                <div class="grid md:grid-cols-3 gap-8">
+                                    <div>
+                                        <h3 class="text-xl font-bold mb-4">Proyecto IoT MQTT</h3>
+                                        <p class="text-gray-400">
+                                            Sistema educativo para aprender comunicación IoT con MQTT
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold mb-4">Enlaces Rápidos</h3>
+                                        <ul class="space-y-2 text-gray-400">
+                                            <li><a href="#inicio" class="hover:text-white transition">Inicio</a></li>
+                                            <li><a href="#mqtt" class="hover:text-white transition">¿Qué es MQTT?</a>
+                                            </li>
+                                            <li><a href="#proyectos" class="hover:text-white transition">Proyectos</a>
+                                            </li>
+                                            <li><a href="#tutorial" class="hover:text-white transition">Tutorial</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold mb-4">Recursos</h3>
+                                        <ul class="space-y-2 text-gray-400">
+                                            <li><a href="README.md"
+                                                    class="hover:text-white transition">Documentación</a></li>
+                                            <li><a href="hogar/INSTRUCCIONES.md"
+                                                    class="hover:text-white transition">Hogar Inteligente</a>
+                                            </li>
+                                            <li><a href="tren/INSTRUCCIONES.md"
+                                                    class="hover:text-white transition">Metro Inteligente</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                                    <p>&copy; 2024 Proyecto IoT MQTT. Uso educativo y demostrativo.</p>
+                                </div>
+                            </div>
+                        </footer>
 
-    <!-- Smooth Scroll -->
-    <script>
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-    </script>
+                        <!-- Smooth Scroll -->
+                        <script>
+                            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                                anchor.addEventListener('click', function (e) {
+                                    e.preventDefault();
+                                    const target = document.querySelector(this.getAttribute('href'));
+                                    if (target) {
+                                        target.scrollIntoView({
+                                            behavior: 'smooth',
+                                            block: 'start'
+                                        });
+                                    }
+                                });
+                            });
+                        </script>
 </body>
-</html>
 
+</html>

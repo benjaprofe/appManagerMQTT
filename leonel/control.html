@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control - Monitoreo de Pacientes</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --medical: #0ea5e9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 15px;
+            font-size: 2.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        h1 i {
+            color: var(--medical);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 25px;
+            border-radius: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .status.connected {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+
+        .status.disconnected {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .control-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .control-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .control-card h3 {
+            margin-bottom: 20px;
+            color: #1f2937;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1f2937;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #dfe6e9;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: 'Roboto', sans-serif;
+            transition: border 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #1f2937;
+            border-left: 4px solid var(--primary);
+        }
+
+        .notification {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            background: var(--success);
+            color: white;
+            padding: 18px 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            display: none;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            display: block;
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .notification.warning {
+            background: var(--warning);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .emergency-card {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .emergency-card h3 {
+            color: white;
+        }
+
+        .emergency-card .info-box {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-left-color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>
+            <i class="fa-solid fa-heartbeat"></i>
+            Panel de Control - Monitoreo de Pacientes
+        </h1>
+        <p class="subtitle">Gestiona el monitoreo y cuidado del paciente</p>
+
+        <div id="status" class="status disconnected">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            Desconectado
+        </div>
+
+        <div id="notification" class="notification"></div>
+
+        <div class="controls-grid">
+            <!-- Signos Vitales -->
+            <div class="control-card">
+                <h3><i class="fa-solid fa-heartbeat"></i> Frecuencia Cardíaca</h3>
+                <div class="input-group">
+                    <label>BPM (latidos por minuto)</label>
+                    <input type="number" id="heart-rate" value="75" min="40" max="180">
+                </div>
+                <button class="btn btn-primary" onclick="actualizarFrecuencia()">
+                    <i class="fa-solid fa-sync"></i>
+                    Actualizar Frecuencia
+                </button>
+                <div class="info-box">
+                    Normal: 60-100 BPM
+                </div>
+            </div>
+
+            <div class="control-card">
+                <h3><i class="fa-solid fa-lungs"></i> Oxígeno en Sangre</h3>
+                <div class="input-group">
+                    <label>SpO2 (%)</label>
+                    <input type="number" id="oxygen" value="98" min="80" max="100">
+                </div>
+                <button class="btn btn-primary" onclick="actualizarOxigeno()">
+                    <i class="fa-solid fa-sync"></i>
+                    Actualizar Oxígeno
+                </button>
+                <div class="info-box">
+                    Normal: 95-100%
+                </div>
+            </div>
+
+            <!-- Detector de Caídas -->
+            <div class="control-card">
+                <h3><i class="fa-solid fa-person-falling"></i> Detector de Caídas</h3>
+                <button class="btn btn-danger" onclick="simularCaida()">
+                    <i class="fa-solid fa-person-falling-burst"></i>
+                    Simular Caída Detectada
+                </button>
+                <button class="btn btn-success" onclick="resetearCaida()">
+                    <i class="fa-solid fa-check"></i>
+                    Resetear Detector
+                </button>
+                <div class="info-box">
+                    Simula la detección de una caída por el acelerómetro
+                </div>
+            </div>
+
+            <!-- Mensajes al Paciente -->
+            <div class="control-card">
+                <h3><i class="fa-solid fa-comment-medical"></i> Mensaje de Tranquilidad</h3>
+                <div class="input-group">
+                    <label>Mensaje para el paciente</label>
+                    <textarea id="mensaje" rows="3"
+                        placeholder="Escribe un mensaje tranquilizador...">Todo está bien. Tus signos vitales son normales.</textarea>
+                </div>
+                <button class="btn btn-success" onclick="enviarMensaje()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Enviar Mensaje
+                </button>
+                <div class="info-box">
+                    Envía un mensaje de tranquilidad al paciente
+                </div>
+            </div>
+
+            <!-- Llamada de Emergencia -->
+            <div class="control-card emergency-card">
+                <h3><i class="fa-solid fa-phone-volume"></i> Llamada de Emergencia</h3>
+                <button class="btn btn-danger" onclick="activarEmergencia()">
+                    <i class="fa-solid fa-phone"></i>
+                    ACTIVAR LLAMADA DE EMERGENCIA
+                </button>
+                <button class="btn btn-success" onclick="desactivarEmergencia()">
+                    <i class="fa-solid fa-phone-slash"></i>
+                    Desactivar Emergencia
+                </button>
+                <div class="info-box">
+                    ⚠️ Simula una llamada a servicios de emergencia
+                </div>
+            </div>
+
+            <!-- Acciones Rápidas -->
+            <div class="control-card">
+                <h3><i class="fa-solid fa-bolt"></i> Acciones Rápidas</h3>
+                <button class="btn btn-success" onclick="valoresNormales()">
+                    <i class="fa-solid fa-heart"></i>
+                    Establecer Valores Normales
+                </button>
+                <button class="btn btn-danger" onclick="valoresCriticos()">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Simular Valores Críticos
+                </button>
+                <div class="info-box">
+                    Establece rápidamente valores predefinidos para pruebas
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_leonel');
+
+        client.on("connect", () => {
+            console.log("Panel de Control conectado!");
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-check-circle"></i> Conectado';
+            document.getElementById("status").className = "status connected";
+            showNotification("✅ Conectado a MQTT", "success");
+        });
+
+        client.on("error", (error) => {
+            console.error("Error:", error);
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Error';
+            document.getElementById("status").className = "status disconnected";
+            showNotification("❌ Error de conexión", "error");
+        });
+
+        client.on("offline", () => {
+            document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Desconectado';
+            document.getElementById("status").className = "status disconnected";
+            showNotification("⚠️ Desconectado de MQTT", "warning");
+        });
+
+        function publish(topic, value, description) {
+            if (!client.connected) {
+                showNotification("❌ No conectado a MQTT", "error");
+                return;
+            }
+
+            client.publish(topic, value, { qos: 1 }, (err) => {
+                if (err) {
+                    console.error(`Error publicando ${topic}:`, err);
+                    showNotification(`❌ Error: ${description}`, "error");
+                } else {
+                    console.log(`✅ Publicado: ${topic} = ${value}`);
+                    showNotification(`✅ ${description}`, "success");
+                }
+            });
+        }
+
+        function showNotification(message, type = "success") {
+            const notification = document.getElementById("notification");
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+
+        // === FUNCIONES DE CONTROL ===
+
+        function actualizarFrecuencia() {
+            const hr = document.getElementById('heart-rate').value;
+            publish("paciente/leonel/vitales/frecuencia", hr, `Frecuencia cardíaca: ${hr} BPM`);
+        }
+
+        function actualizarOxigeno() {
+            const ox = document.getElementById('oxygen').value;
+            publish("paciente/leonel/vitales/oxigeno", ox, `Oxígeno: ${ox}%`);
+        }
+
+        function simularCaida() {
+            if (confirm('⚠️ ¿Simular detección de caída?')) {
+                publish("paciente/leonel/caida/detectada", "true", "🚨 CAÍDA DETECTADA");
+            }
+        }
+
+        function resetearCaida() {
+            publish("paciente/leonel/caida/detectada", "false", "Detector de caídas reseteado");
+        }
+
+        function enviarMensaje() {
+            const mensaje = document.getElementById('mensaje').value;
+            if (!mensaje) {
+                showNotification("⚠️ Escribe un mensaje", "warning");
+                return;
+            }
+            publish("paciente/leonel/mensaje/tranquilidad", mensaje, "Mensaje enviado al paciente");
+        }
+
+        function activarEmergencia() {
+            if (confirm('⚠️ ¿ACTIVAR LLAMADA DE EMERGENCIA?')) {
+                publish("paciente/leonel/emergencia/llamada", "activada", "📞 EMERGENCIA ACTIVADA");
+            }
+        }
+
+        function desactivarEmergencia() {
+            publish("paciente/leonel/emergencia/llamada", "desactivada", "Emergencia desactivada");
+        }
+
+        function valoresNormales() {
+            document.getElementById('heart-rate').value = 75;
+            document.getElementById('oxygen').value = 98;
+            actualizarFrecuencia();
+            setTimeout(() => actualizarOxigeno(), 200);
+            resetearCaida();
+            showNotification("✅ Valores normales establecidos", "success");
+        }
+
+        function valoresCriticos() {
+            if (confirm('⚠️ ¿Simular valores críticos?')) {
+                document.getElementById('heart-rate').value = 120;
+                document.getElementById('oxygen').value = 88;
+                actualizarFrecuencia();
+                setTimeout(() => actualizarOxigeno(), 200);
+                setTimeout(() => simularCaida(), 400);
+            }
+        }
+    </script>
+</body>
+
+</html>

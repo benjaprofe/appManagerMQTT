@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batalla del Oráculo 🔮</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6d28d9;
+            --secondary: #4c1d95;
+            --accent: #f59e0b;
+            --bg: #111827;
+            --card-bg: #1f2937;
+            --text: #f3f4f6;
+            --hp-high: #10b981;
+            --hp-mid: #f59e0b;
+            --hp-low: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #1f2937 0%, #111827 100%);
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Cinzel', serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Pantallas */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Menú */
+        .menu-card {
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            margin: 50px auto;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin: 10px 0;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(109, 40, 217, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #374151, #1f2937);
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 1.2em;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        /* Juego */
+        .game-layout {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: 90vh;
+            gap: 20px;
+        }
+
+        .player-area {
+            background: rgba(31, 41, 55, 0.5);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hp-bar-container {
+            width: 300px;
+            background: #374151;
+            height: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .hp-bar {
+            height: 100%;
+            background: var(--hp-high);
+            width: 100%;
+            transition: width 0.5s ease, background-color 0.5s;
+        }
+
+        .hp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            z-index: 2;
+        }
+
+        .battle-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+            position: relative;
+        }
+
+        .card-slot {
+            width: 140px;
+            height: 200px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .card {
+            width: 140px;
+            height: 200px;
+            background: linear-gradient(135deg, #1f2937, #111827);
+            border: 2px solid var(--accent);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            user-select: none;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .card.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary);
+            transform: translateY(-20px);
+        }
+
+        .card-icon {
+            font-size: 3em;
+            margin: 10px 0;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .card-desc {
+            font-size: 0.7em;
+            text-align: center;
+            color: #9ca3af;
+        }
+
+        .card-type {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.8em;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 5px;
+            border-radius: 5px;
+        }
+
+        .card.attack {
+            border-color: #ef4444;
+        }
+
+        .card.attack .card-icon {
+            color: #ef4444;
+        }
+
+        .card.defense {
+            border-color: #3b82f6;
+        }
+
+        .card.defense .card-icon {
+            color: #3b82f6;
+        }
+
+        .card.heal {
+            border-color: #10b981;
+        }
+
+        .card.heal .card-icon {
+            color: #10b981;
+        }
+
+        .hand {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            min-height: 240px;
+        }
+
+        .ppt-options {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .ppt-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: none;
+            background: #374151;
+            font-size: 2em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ppt-btn:hover {
+            transform: scale(1.1);
+            background: var(--primary);
+        }
+
+        .ppt-btn.selected {
+            background: var(--accent);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        .log-area {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+            min-width: 300px;
+        }
+
+        .log-area.show {
+            opacity: 1;
+        }
+
+        .dice-display {
+            font-size: 4em;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateX(200%);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .phase-indicator {
+            text-align: center;
+            font-size: 1.5em;
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-family: 'Cinzel', serif;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="../index.html"
+            style="color: white; text-decoration: none; display: inline-block; margin-bottom: 20px;">
+            <i class="fas fa-arrow-left"></i> Volver al inicio
+        </a>
+
+        <!-- MENU -->
+        <div id="menuScreen" class="screen active">
+            <h1>🔮 Batalla del Oráculo</h1>
+            <div class="menu-card">
+                <button class="btn" onclick="createGame()">Crear Sala</button>
+                <button class="btn btn-secondary" onclick="showJoin()">Unirse a Sala</button>
+            </div>
+        </div>
+
+        <!-- LOBBY -->
+        <div id="lobbyScreen" class="screen">
+            <h1>Sala de Espera</h1>
+            <div class="menu-card">
+                <p>Código de Sala:</p>
+                <h2 id="lobbyCode" style="font-size: 3em; color: var(--accent); margin: 20px 0;"></h2>
+                <p id="lobbyStatus">Esperando oponente...</p>
+                <button class="btn btn-secondary" onclick="backToMenu()">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- UNIRSE -->
+        <div id="joinScreen" class="screen">
+            <h1>Unirse a Batalla</h1>
+            <div class="menu-card">
+                <input type="text" id="joinCode" placeholder="CÓDIGO DE SALA" maxlength="6">
+                <button class="btn" onclick="joinGame()">Unirse</button>
+                <button class="btn btn-secondary" onclick="backToMenu()">Volver</button>
+            </div>
+        </div>
+
+        <!-- JUEGO -->
+        <div id="gameScreen" class="screen">
+            <div class="game-layout">
+                <!-- Oponente -->
+                <div class="player-area opponent">
+                    <div>
+                        <h3>Oponente</h3>
+                        <div class="hp-bar-container">
+                            <div id="enemyHpBar" class="hp-bar"></div>
+                            <span id="enemyHpText" class="hp-text">100/100</span>
+                        </div>
+                    </div>
+                    <div class="card-slot">
+                        <div id="enemyCardBack" class="card" style="background: #374151; display: none;">
+                            <i class="fas fa-question" style="font-size: 3em; color: #6b7280;"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Área de Batalla -->
+                <div class="battle-area">
+                    <div class="log-area" id="battleLog">
+                        <h2 id="logTitle">¡Batalla!</h2>
+                        <div id="logContent"></div>
+                    </div>
+
+                    <div id="diceArea" style="display: none; text-align: center;">
+                        <p>Dado de Daño</p>
+                        <div id="diceValue" class="dice-display">🎲</div>
+                    </div>
+                </div>
+
+                <!-- Jugador -->
+                <div class="player-area me" style="flex-direction: column; background: transparent; padding: 0;">
+                    <div class="phase-indicator" id="phaseText">Fase de Preparación</div>
+
+                    <div
+                        style="display: flex; justify-content: space-between; width: 100%; background: rgba(31,41,55,0.8); padding: 15px; border-radius: 15px;">
+                        <div>
+                            <h3>Tú</h3>
+                            <div class="hp-bar-container">
+                                <div id="myHpBar" class="hp-bar"></div>
+                                <span id="myHpText" class="hp-text">100/100</span>
+                            </div>
+                        </div>
+                        <div id="pptSelection" class="ppt-options" style="display: none;">
+                            <button class="ppt-btn" onclick="selectPPT('rock')">🪨</button>
+                            <button class="ppt-btn" onclick="selectPPT('paper')">📄</button>
+                            <button class="ppt-btn" onclick="selectPPT('scissors')">✂️</button>
+                        </div>
+                    </div>
+
+                    <div class="hand" id="myHand">
+                        <!-- Las cartas se generarán aquí -->
+                    </div>
+
+                    <button id="confirmBtn" class="btn" style="max-width: 300px; display: none;"
+                        onclick="confirmAction()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script src="../env/credential.js"></script>
+    <script>
+        const client = createMqttClient('client_card');
+
+        // Estado del Juego
+        let state = {
+            code: null,
+            player: null, // 1 (Host) o 2 (Guest)
+            hp: 100,
+            enemyHp: 100,
+            hand: [],
+            deck: [],
+            selectedCard: null,
+            selectedPPT: null,
+            phase: 'lobby', // lobby, prep, ppt, resolution, end
+            enemyReady: false,
+            enemySelection: null, // { cardType: ?, ppt: ? } (revelado al final)
+            turn: 1
+        };
+
+        // Tipos de Cartas
+        const CARD_TYPES = [
+            { type: 'attack', name: 'Golpe Certero', icon: 'fa-fist-raised', desc: '+5 Daño', bonus: 5 },
+            { type: 'attack', name: 'Furia', icon: 'fa-fire', desc: '+8 Daño', bonus: 8 },
+            { type: 'defense', name: 'Escudo', icon: 'fa-shield-alt', desc: '-5 Daño recibido', bonus: 5 },
+            { type: 'defense', name: 'Muralla', icon: 'fa-dungeon', desc: '-8 Daño recibido', bonus: 8 },
+            { type: 'heal', name: 'Poción', icon: 'fa-flask', desc: '+10 Vida', bonus: 10 },
+            { type: 'heal', name: 'Rezo', icon: 'fa-praying-hands', desc: '+15 Vida', bonus: 15 }
+        ];
+
+        // === NAVEGACIÓN ===
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function backToMenu() {
+            if (state.code) client.unsubscribe(`oracle/battle/${state.code}/#`);
+            resetState();
+            showScreen('menuScreen');
+        }
+
+        function resetState() {
+            state = {
+                code: null, player: null, hp: 100, enemyHp: 100,
+                hand: [], deck: [], selectedCard: null, selectedPPT: null,
+                phase: 'lobby', enemyReady: false, enemySelection: null, turn: 1
+            };
+        }
+
+        // === LÓGICA DE JUEGO ===
+        function createGame() {
+            state.code = Math.random().toString(36).substring(2, 8).toUpperCase();
+            state.player = 1;
+            document.getElementById('lobbyCode').textContent = state.code;
+            showScreen('lobbyScreen');
+            subscribeMqtt();
+        }
+
+        function showJoin() { showScreen('joinScreen'); }
+
+        function joinGame() {
+            const code = document.getElementById('joinCode').value.toUpperCase();
+            if (code.length !== 6) return showNotif('Código inválido');
+            state.code = code;
+            state.player = 2;
+            subscribeMqtt();
+            client.publish(`oracle/battle/${code}/join`, JSON.stringify({ player: 2 }));
+            startGame();
+        }
+
+        function startGame() {
+            showScreen('gameScreen');
+            initDeck();
+            drawCards();
+            startTurn();
+        }
+
+        function initDeck() {
+            state.deck = [];
+            for (let i = 0; i < 20; i++) {
+                state.deck.push(CARD_TYPES[Math.floor(Math.random() * CARD_TYPES.length)]);
+            }
+        }
+
+        function drawCards() {
+            while (state.hand.length < 2 && state.deck.length > 0) {
+                state.hand.push(state.deck.pop());
+            }
+            renderHand();
+        }
+
+        function renderHand() {
+            const container = document.getElementById('myHand');
+            container.innerHTML = '';
+            state.hand.forEach((card, idx) => {
+                const el = document.createElement('div');
+                el.className = `card ${card.type} ${state.selectedCard === idx ? 'selected' : ''}`;
+                el.onclick = () => selectCard(idx);
+                el.innerHTML = `
+                    <div class="card-type">${card.type.toUpperCase()}</div>
+                    <i class="fas ${card.icon} card-icon"></i>
+                    <div class="card-title">${card.name}</div>
+                    <div class="card-desc">${card.desc}</div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function selectCard(idx) {
+            if (state.phase !== 'prep') return;
+            state.selectedCard = idx;
+            renderHand();
+            checkReady();
+        }
+
+        function selectPPT(choice) {
+            if (state.phase !== 'prep') return;
+            state.selectedPPT = choice;
+
+            document.querySelectorAll('.ppt-btn').forEach(btn => btn.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+
+            checkReady();
+        }
+
+        function checkReady() {
+            const btn = document.getElementById('confirmBtn');
+            if (state.selectedCard !== null && state.selectedPPT !== null) {
+                btn.style.display = 'block';
+            }
+        }
+
+        function startTurn() {
+            state.phase = 'prep';
+            state.selectedCard = null;
+            state.selectedPPT = null;
+            state.enemyReady = false;
+            state.enemySelection = null;
+
+            document.getElementById('phaseText').textContent = `Turno ${state.turn} - Fase de Preparación`;
+            document.getElementById('pptSelection').style.display = 'flex';
+            document.getElementById('confirmBtn').style.display = 'none';
+            document.getElementById('enemyCardBack').style.display = 'none';
+            document.getElementById('battleLog').classList.remove('show');
+            document.querySelectorAll('.ppt-btn').forEach(btn => btn.classList.remove('selected'));
+
+            drawCards();
+        }
+
+        function confirmAction() {
+            if (state.selectedCard === null || state.selectedPPT === null) return;
+
+            state.phase = 'waiting';
+            document.getElementById('phaseText').textContent = 'Esperando al oponente...';
+            document.getElementById('confirmBtn').style.display = 'none';
+            document.getElementById('pptSelection').style.display = 'none';
+
+            // Enviar selección (oculta)
+            const payload = {
+                player: state.player,
+                ready: true,
+                // No enviamos la selección real aún para evitar trampas, solo confirmación
+                // En un sistema real seguro, se usaría un hash commit-reveal
+                // Para este demo, enviamos la selección pero confiamos en el cliente
+                selection: {
+                    card: state.hand[state.selectedCard],
+                    ppt: state.selectedPPT
+                }
+            };
+            client.publish(`oracle/battle/${state.code}/action`, JSON.stringify(payload));
+        }
+
+        // === MQTT ===
+        function subscribeMqtt() {
+            client.subscribe(`oracle/battle/${state.code}/#`);
+        }
+
+        client.on('message', (topic, message) => {
+            const data = JSON.parse(message.toString());
+            const subtopic = topic.split('/').pop();
+
+            if (subtopic === 'join' && state.player === 1) {
+                startGame();
+            }
+
+            if (subtopic === 'action' && data.player !== state.player) {
+                state.enemyReady = true;
+                state.enemySelection = data.selection;
+                document.getElementById('enemyCardBack').style.display = 'flex';
+
+                if (state.phase === 'waiting') {
+                    resolveTurn();
+                }
+            }
+        });
+
+        // === RESOLUCIÓN ===
+        function resolveTurn() {
+            state.phase = 'resolution';
+            document.getElementById('phaseText').textContent = 'Resolviendo Combate...';
+
+            const myMove = { card: state.hand[state.selectedCard], ppt: state.selectedPPT };
+            const enemyMove = state.enemySelection;
+
+            // Determinar ganador PPT
+            let result = getPPTResult(myMove.ppt, enemyMove.ppt);
+            let dice = Math.floor(Math.random() * 6) + 1; // Dado d6
+
+            // Mostrar log
+            const log = document.getElementById('battleLog');
+            const content = document.getElementById('logContent');
+            log.classList.add('show');
+
+            let logHtml = `
+                <div style="font-size: 2em; margin: 10px;">
+                    ${getPPTIcon(myMove.ppt)} vs ${getPPTIcon(enemyMove.ppt)}
+                </div>
+                <div style="font-size: 3em; color: var(--accent);">${dice} 🎲</div>
+            `;
+
+            // Lógica de daño
+            let myDamage = 0;
+            let enemyDamage = 0;
+            let msg = "";
+
+            if (result === 'win') {
+                msg = "¡Ganaste el choque!";
+                let dmg = dice;
+                if (myMove.card.type === 'attack') dmg += myMove.card.bonus;
+
+                // Enemigo defiende
+                if (enemyMove.card.type === 'defense') dmg = Math.max(0, dmg - enemyMove.card.bonus);
+
+                enemyDamage = dmg;
+
+                // Curaciones
+                if (myMove.card.type === 'heal') state.hp = Math.min(100, state.hp + myMove.card.bonus);
+                if (enemyMove.card.type === 'heal') state.enemyHp = Math.min(100, state.enemyHp + enemyMove.card.bonus);
+
+            } else if (result === 'lose') {
+                msg = "Perdiste el choque...";
+                let dmg = dice;
+                if (enemyMove.card.type === 'attack') dmg += enemyMove.card.bonus;
+
+                // Yo defiendo
+                if (myMove.card.type === 'defense') dmg = Math.max(0, dmg - myMove.card.bonus);
+
+                myDamage = dmg;
+
+                // Curaciones
+                if (myMove.card.type === 'heal') state.hp = Math.min(100, state.hp + myMove.card.bonus);
+                if (enemyMove.card.type === 'heal') state.enemyHp = Math.min(100, state.enemyHp + enemyMove.card.bonus);
+
+            } else {
+                msg = "¡Empate! Ambos reciben daño.";
+                // Daño compartido
+                let myDmg = dice;
+                let enemyDmg = dice;
+
+                // Aplicar cartas individuales
+                if (myMove.card.type === 'defense') myDmg = Math.max(0, myDmg - myMove.card.bonus);
+                if (enemyMove.card.type === 'defense') enemyDmg = Math.max(0, enemyDmg - enemyMove.card.bonus);
+
+                if (myMove.card.type === 'heal') state.hp = Math.min(100, state.hp + myMove.card.bonus);
+                if (enemyMove.card.type === 'heal') state.enemyHp = Math.min(100, state.enemyHp + enemyMove.card.bonus);
+
+                myDamage = myDmg;
+                enemyDamage = enemyDmg;
+            }
+
+            // Aplicar daño final
+            state.hp = Math.max(0, state.hp - myDamage);
+            state.enemyHp = Math.max(0, state.enemyHp - enemyDamage);
+
+            logHtml += `<p>${msg}</p>`;
+            if (myDamage > 0) logHtml += `<p style="color: #ef4444;">Recibiste ${myDamage} daño</p>`;
+            if (enemyDamage > 0) logHtml += `<p style="color: #10b981;">Hiciste ${enemyDamage} daño</p>`;
+
+            content.innerHTML = logHtml;
+            updateUI();
+
+            // Descartar carta usada
+            state.hand.splice(state.selectedCard, 1);
+
+            // Verificar final
+            if (state.hp <= 0 || state.enemyHp <= 0) {
+                setTimeout(() => endGame(), 3000);
+            } else {
+                setTimeout(() => {
+                    state.turn++;
+                    startTurn();
+                }, 4000);
+            }
+        }
+
+        function getPPTResult(me, enemy) {
+            if (me === enemy) return 'tie';
+            if ((me === 'rock' && enemy === 'scissors') ||
+                (me === 'paper' && enemy === 'rock') ||
+                (me === 'scissors' && enemy === 'paper')) return 'win';
+            return 'lose';
+        }
+
+        function getPPTIcon(choice) {
+            const icons = { rock: '🪨', paper: '📄', scissors: '✂️' };
+            return icons[choice];
+        }
+
+        function updateUI() {
+            // Barras de vida
+            const myBar = document.getElementById('myHpBar');
+            const enemyBar = document.getElementById('enemyHpBar');
+
+            myBar.style.width = `${state.hp}%`;
+            enemyBar.style.width = `${state.enemyHp}%`;
+
+            document.getElementById('myHpText').textContent = `${state.hp}/100`;
+            document.getElementById('enemyHpText').textContent = `${state.enemyHp}/100`;
+
+            // Colores de vida
+            updateHpColor(myBar, state.hp);
+            updateHpColor(enemyBar, state.enemyHp);
+        }
+
+        function updateHpColor(bar, hp) {
+            if (hp > 60) bar.style.backgroundColor = 'var(--hp-high)';
+            else if (hp > 30) bar.style.backgroundColor = 'var(--hp-mid)';
+            else bar.style.backgroundColor = 'var(--hp-low)';
+        }
+
+        function endGame() {
+            const log = document.getElementById('battleLog');
+            const content = document.getElementById('logContent');
+            log.classList.add('show');
+
+            let msg = "";
+            if (state.hp <= 0 && state.enemyHp <= 0) msg = "¡EMPATE MORTAL!";
+            else if (state.hp <= 0) msg = "💀 HAS SIDO DERROTADO";
+            else msg = "🏆 ¡VICTORIA ABSOLUTA!";
+
+            content.innerHTML = `<h1>${msg}</h1><button class="btn" onclick="backToMenu()">Salir</button>`;
+        }
+
+        function showNotif(msg) {
+            const el = document.getElementById('notification');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+
+</html>
